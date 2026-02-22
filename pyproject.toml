@@ -1,0 +1,11 @@
+[project]
+name = "capstone_project"
+version = "0.1.0"
+description = "stats170a"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.4.2",
+    "pandas>=3.0.1",
+    "plotly>=6.5.2",
+]
