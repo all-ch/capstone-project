@@ -87,7 +87,7 @@ def gen_ap(input: pd.DataFrame, output: pd.DataFrame) -> go.Figure:
     out_countries, out_pct = output.T.values
     all_countries = in_countries.tolist() + out_countries.tolist()
     lsource, ltarget, lvalue = calc_links(input, output)
-    ncolor, lcolor = map_colors(all_countries, lsource)
+    ncolor, lcolor = map_colors(all_countries, ltarget)
     return go.Figure(
         data=[
             go.Sankey(
