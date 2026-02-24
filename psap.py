@@ -68,15 +68,21 @@ def gen_psap(dfs: dict[str, pd.DataFrame]) -> go.Figure:
 
 def main():
     df = pd.read_csv(DATAFILE)
-    us = get_fcat(df, 1997, 2013, US)
-    eu = get_fcat(df, 1997, 2013, EU)
-    other = get_fcat(df, 1997, 2013, US + EU, False)
+
+    start = 1997
+    end = 2013
+
+    us = get_fcat(df, start, end, US)
+    eu = get_fcat(df, start, end, EU)
+    other = get_fcat(df, start, end, US + EU, False)
+
     fig = gen_psap(dict(zip(["United States", "Europe", "Other"], [us, eu, other])))
+
     fig.update_layout(
         showlegend=True,
         xaxis_type="category",
         yaxis=dict(type="linear", range=[1, 100], ticksuffix="%"),
-        title_text=f"Speaker Composition by Region ({1997}-{2013})",
+        title_text=f"Speaker Composition by Region ({start}-{end})",
         legend_title_text="Regions",
         xaxis_title="Conference Year",
         yaxis_title="Speaker Composition (%)",
