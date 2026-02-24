@@ -10,8 +10,13 @@ def main():
         df.groupby("Organization_Country")["Person"]
         .nunique()
         .reset_index(name="Total_Count")
+        .sort_values(by="Total_Count", ascending=False)
     )
-    print(speakers_per_country)
+
+    other_countries = speakers_per_country.iloc[20:].sum().to_frame().T
+    other_countries.iat[0, 0] = "Other Countries"
+
+    print(pd.concat([speakers_per_country.head(20), other_countries]))
 
 
 if __name__ == "__main__":
