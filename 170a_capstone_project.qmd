@@ -11,6 +11,7 @@ editor: visual
 #| include: false
 
 library(tidyverse)
+library(eurostat)
 
 ```
 
@@ -25,11 +26,58 @@ conf_data <- readxl::read_excel("WCF Presenters_Stats170_20260219.xlsx")
 ## Task 1) Table listing total number of speakers/sponsors from each country
 
 ```{r}
+#TODO: filter out
+speaker_sponsor_filter = c("Presenter", "Sponsor", "Speaker", "Panelist", "Seminar", #Pretty Confident
+                           "Workshop") #Less Confident
 
+#NOTE: not sure if we should filter out people by speaker/sponsor role
+speakers_per_country <- conf_data |> 
+  group_by(Organization_Country) |>
+  summarize(Total_Count = n_distinct(Person)) |>
+  arrange(desc(Total_Count))
+
+top_20 <- head(speakers_per_country, 20)
+other_countries <- tail(speakers_per_country, nrow(speakers_per_country) - 20) |>
+  summarize(Organization_Country = "Other Countries", 
+            Total_Count = sum(Total_Count))
+
+speaker_table <- bind_rows(top_20, other_countries)
+print(speaker_table, n = Inf)
 
 
 ```
 
-## Task 2) Condensed Dataframe for speakers by country category
+## Task 2) Condensed Dataframe for speakers by country category by conference year
+```{r}
+#| message: false
+
+european_countries <- eu_countries$name
+
+three_country_speakers <- conf_data |>
+  mutate(Region = case_when(
+    Organization_Country %in% c("United States") ~ "United States",
+    Organization_Country %in%  european_countries ~ "European Countries",
+    TRUE ~ "Other Countries")) |>
+  group_by(Conference_Year, Region) |>
+  summarize(Total_Count = n_distinct(Person))
+  
+print(three_country_speakers)
+
+```
 
 ## Task 3) Stacked Area Plot
+
+```{r}
+# NOTE:only has '97, '99, '04, '07, '09, 2012, 2013, so looks choppy
+ggplot(three_country_speakers, aes(x = Conference_Year, y = Total_Count, fill = Region)) +
+  geom_area(position = "fill", colour = "black", size = .2, alpha = .4) +
+  scale_fill_brewer(palette = "Blues") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Speaker Composition by Year",
+    x =  "Conference_Year",
+    y = "Percentage of Speakers"
+  ) + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
