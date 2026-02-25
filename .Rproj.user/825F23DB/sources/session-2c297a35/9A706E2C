@@ -1,0 +1,31 @@
+{
+    "id": "9A706E2C",
+    "path": "~/capstone-project/170a_capstone_project.qmd",
+    "project_path": "170a_capstone_project.qmd",
+    "type": "quarto_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": true,
+    "created": 1771979285867.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "rmdVisualMode": "true",
+        "rmdVisualWrapConfigured": "true",
+        "source_window_id": "",
+        "Source": "Source",
+        "docOutlineVisible": "1",
+        "rmdVisualCollapsedChunks": "",
+        "cursorPosition": "26,0",
+        "scrollLine": "0",
+        "rmdVisualModeLocation": "482:400"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1771979289,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1771980744259,
+    "read_only": false,
+    "read_only_alternatives": []
+}
