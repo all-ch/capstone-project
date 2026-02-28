@@ -83,21 +83,70 @@ ggplot(three_country_speakers, aes(x = Conference_Year, y = Total_Count, fill = 
 
 ```
 
-## Plots
+## Network Analysis
 
-### Plot 1
+### Filter Speech
 
 ```{r}
 speech_filter <- conf_data |>
-  mutate(unite("speech" = Presentation_Text1,
-                          Presentation_Text2,
-                          Presentation_Text3,
-                          Presentation_Text4, na.rm = TRUE)) |>
+  unite("speech",
+        Presentation_Text1,
+        Presentation_Text2,
+        Presentation_Text3,
+        Presentation_Text4,
+        na.rm = T) |>
   select(
     cyear = Conference_Year,
     ctitle = Conference_Title,
     speaker = Person,
     speech) |>
+  mutate(speech = na_if(speech, "")) |>
+  group_by(cyear, ctitle, speaker) |>
+  mutate(sid = row_number()) |>
+  ungroup() |>
   drop_na()
 ```
+
+### Preprocessing
+
+```{r}
+#| include: False
+library(tidytext)
+library(textstem)
+library(textclean)
+```
+
+#### Expand Contractions
+
+```{r}
+speech_filter$speech <- speech_filter$speech |>
+  replace_contraction()
+```
+
+#### Lemmatization and Filter Stop Words and Digits
+
+```{r}
+cleaned_speech <- speech_filter |>
+  unnest_tokens(output = word, input = speech) |>
+  filter(!str_detect(word, "[:digit:]")) |>
+  mutate(lemma = lemmatize_words(word)) |>
+  anti_join(stop_words, by = c("lemma" = "word")) |>
+  group_by(cyear, ctitle, speaker, sid) |>
+  summarize(speech = paste(lemma, collapse = " "), .groups = "drop") |>
+  ungroup()
+```
+
+#### N-Grams
+
+```{r}
+unigrams <- cleaned_speech |>
+  unnest_tokens(output = word, input = speech)
+
+bigrams <- cleaned_speech |>
+  unnest_tokens(output = word, input = speech, token = "ngrams", n = 2)
+
+trigrams <- cleaned_speech |>
+  unnest_tokens(output = word, input = speech, token = "ngrams", n = 3)
+```
+
 
