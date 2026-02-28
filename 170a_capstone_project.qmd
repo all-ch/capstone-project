@@ -19,7 +19,7 @@ library(eurostat)
 
 ```{r}
 
-conf_data <- readxl::read_excel("WCF Presenters_Stats170_20260219.xlsx")
+conf_data <- readxl::read_excel("WCF Presenters_Stats170_20260219.xlsx", na = c("", "NA", "N/A"))
 
 ```
 
@@ -48,6 +48,7 @@ print(speaker_table, n = Inf)
 ```
 
 ## Task 2) Condensed Dataframe for speakers by country category by conference year
+
 ```{r}
 #| message: false
 
@@ -81,3 +82,22 @@ ggplot(three_country_speakers, aes(x = Conference_Year, y = Total_Count, fill = 
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
+
+## Plots
+
+### Plot 1
+
+```{r}
+speech_filter <- conf_data |>
+  mutate(unite("speech" = Presentation_Text1,
+                          Presentation_Text2,
+                          Presentation_Text3,
+                          Presentation_Text4, na.rm = TRUE)) |>
+  select(
+    cyear = Conference_Year,
+    ctitle = Conference_Title,
+    speaker = Person,
+    speech) |>
+  drop_na()
+```
+
