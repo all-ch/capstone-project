@@ -128,8 +128,9 @@ speech_filter$speech <- speech_filter$speech |>
 ```{r}
 cleaned_speech <- speech_filter |>
   unnest_tokens(output = word, input = speech) |>
-  filter(!str_detect(word, "[:digit:]")) |>
-  mutate(lemma = lemmatize_words(word)) |>
+  filter(!str_detect(word, "\\d")) |>
+  mutate(word = str_remove(word, "^_+"), 
+         lemma = lemmatize_words(word)) |>
   anti_join(stop_words, by = c("lemma" = "word")) |>
   group_by(cyear, ctitle, speaker, sid) |>
   summarize(speech = paste(lemma, collapse = " "), .groups = "drop") |>
