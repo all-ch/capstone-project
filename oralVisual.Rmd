@@ -212,24 +212,27 @@ otherText <- textStatus %>%
 
 #only top 5 points
 textYear <- top5Text_year %>%
-  select(Conference_Year, word, n)
+  select(Conference_Year, word, n) |>
+  group_by(Conference_Year) |>
+  mutate(total = sum(n)) |>
+  ungroup()
 ```
 
 ```{r topTextAcrossYr_Plot}
 ggplot() +
   geom_line(
     data = textYear %>% filter(word %in% allYearText),
-    aes(x = Conference_Year, y = n, color = word, group = word),
+    aes(x = Conference_Year, y = n / total, color = word, group = word),
     linewidth = 1
   ) +
   geom_point(
     data = textYear %>% filter(word %in% allYearText),
-    aes(x = Conference_Year, y = n, color = word),
+    aes(x = Conference_Year, y = n / total, color = word),
     size = 2
   ) +
   geom_point(
     data = textYear %>% filter(word %in% otherText),
-    aes(x = Conference_Year, y = n),
+    aes(x = Conference_Year, y = n / total),
     shape = 17,
     size = 2,
     color = "grey40"
