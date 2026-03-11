@@ -52,7 +52,12 @@ print(speaker_table, n = Inf)
 ```{r}
 #| message: false
 
-european_countries <- eu_countries$name
+european_countries <- as.data.frame(eu_countries$name) |>
+  rename("name" = "eu_countries$name")
+
+# Adding the European diaspora countries
+european_countries <- european_countries |>
+  add_row(tibble(name = c("Russia", "Australia", "New Zealand", "Canada")))
 
 three_country_speakers <- conf_data |>
   mutate(Region = case_when(
@@ -149,5 +154,3 @@ bigrams <- cleaned_speech |>
 trigrams <- cleaned_speech |>
   unnest_tokens(output = word, input = speech, token = "ngrams", n = 3)
 ```
-
-
