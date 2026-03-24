@@ -18,7 +18,7 @@ library(eurostat)
 
 ```{r}
 # read excel as dataframe, and consider all blank, "NA", and "N/A" as NA type for R
-conf_data <- readxl::read_excel("WCF Presenters_Stats170_20260219.xlsx", na = c("", "NA", "N/A"))
+conf_data <- readxl::read_excel("../data/data.xlsx", na = c("", "NA", "N/A"))
 ```
 
 ## Task 1) Table listing total number of speakers/sponsors from each country

@@ -18,7 +18,7 @@ library(tidyr)
 
 
 ```{r loadData}
-wcf <- read_excel("WCF Presenters_Stats170_20260219.xlsx", na = c("", "NA", "N/A"))
+wcf <- read_excel("../data/data.xlsx", na = c("", "NA", "N/A"))
 ```
 
 ```{r person}
