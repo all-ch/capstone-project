@@ -1,1 +1,3 @@
-Please change DATAFILE constant to match location of the data.
+# The Social Networks of Transnational Authoritarianism
+
+## Rean Du (and Team)
