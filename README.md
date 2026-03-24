@@ -1,3 +1,3 @@
-# The Social Networks of Transnational Authoritarianism
+## The Social Networks of Transnational Authoritarianism
 
-## Rean Du (and Team)
+### Rean Du (and Team)
