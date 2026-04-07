@@ -1,0 +1,251 @@
+---
+title: "oralVisual"
+output: pdf_document
+date: "2026-03-02"
+---
+
+```{r library}
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(tidyverse)
+library(tidytext)
+library(textstem)
+library(SnowballC)
+library(tidyr)
+```
+
+
+```{r loadData}
+wcf <- read_excel("../data/data.xlsx", na = c("", "NA", "N/A"))
+```
+
+```{r person}
+wcf %>%
+  count(Person) %>%
+  filter(n > 1) %>%
+  arrange(desc(n))
+```
+
+```{r person_Plot}
+topPeople <- wcf %>%
+  filter(!is.na(Person), Person != "N/A") %>%
+  count(Person, sort = TRUE) %>%
+  slice_head(n = 7) %>%
+  mutate(Person = reorder(Person, n))
+
+ggplot(topPeople, aes(x = Person, y = n)) +
+  geom_col(fill = "lightblue") +
+  coord_flip() +
+  scale_y_continuous(
+    breaks = c(0, 7, 10, 13),
+    limits = c(0, 13)
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85"),
+    axis.title.y = element_blank()
+  ) +
+  labs(title = "Top Frequent Person", y = "Speech Count")
+```
+
+
+
+```{r organization}
+wcf %>%
+  count(Organization) %>%
+  filter(n > 1) %>%
+  arrange(desc(n))
+```
+
+```{r organization_Plot}
+topOrganization <- wcf %>%
+  filter(!is.na(Organization), Organization != "N/A", Organization != "") %>%
+  count(Organization, sort = TRUE) %>%
+  slice_head(n = 8) %>%
+  mutate(
+    Organization = str_wrap(Organization, width = 35),
+    Organization = reorder(Organization, n)
+  )
+
+ggplot(topOrganization, aes(x = Organization, y = n)) +
+  geom_col(fill = "lightblue") +
+  coord_flip() +
+  scale_y_continuous(
+    breaks = c(0, 10, 11, 13, 21, 28),
+    limits = c(0, max(topOrganization$n))
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85"),
+    axis.title.y = element_blank()
+  ) +
+  labs(title = "Top Frequent Organizations", y = "Speech Count")
+```
+
+```{r titleClean}
+title <- wcf %>%
+  select(Presentation_Title) %>%
+  unnest_tokens(word, Presentation_Title)
+
+#remove filler words
+data("stop_words")
+cleanTitle <- title %>%
+  anti_join(stop_words, by = "word")
+#remove white space
+cleanTitle <- cleanTitle %>%
+  filter(!str_detect(word, "^[0-9]+$"))
+#add stemming
+cleanTitle <- cleanTitle %>%
+  mutate(word = wordStem(word))
+
+countTitle <- cleanTitle %>%
+  count(word, sort = TRUE)
+countTitle
+```
+
+```{r title_Plot}
+topTitle <- countTitle %>%
+  slice_head(n = 7) %>%
+  mutate(word = reorder(word, n))
+
+labelMap <- c(
+  "famili"  = "family/families",
+  "marriag" = "marriage",
+  "cultur"  = "culture"
+)
+
+ggplot(topTitle, aes(x = word, y = n)) +
+  geom_col(fill = "lightblue") +
+  coord_flip() +
+  scale_y_continuous(
+    breaks = c(0, 50, 100, 150, 200),
+    limits = c(0, max(topTitle$n))
+  ) +
+  scale_x_discrete(labels = function(x) ifelse(x %in% names(labelMap), labelMap[x], x)) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85"),
+    axis.title.y = element_blank()
+  ) +
+  labs(title = "Most Frequent Words in Presentation Titles", y = "Count")
+```
+
+```{r textCLean}
+text <- wcf %>%
+  select(Conference_Year, Presentation_Text1, Presentation_Text2, Presentation_Text3, Presentation_Text4, Presentation_Text5) %>%
+  pivot_longer(cols = starts_with("Presentation_Text"), names_to = "text_source", values_to = "text") %>%
+  filter(!is.na(text))
+
+tokens <- text %>%
+  unnest_tokens(word, text)
+
+cleanText <- tokens %>%
+  anti_join(stop_words, by = "word") %>%
+  filter(!str_detect(word, "^[0-9]+$"))
+cleanText <- cleanText %>%
+  mutate(word = lemmatize_words(word))
+```
+
+```{r topText}
+topText_year <- cleanText %>%
+  group_by(Conference_Year, word) %>%
+  summarize(n = n(), .groups = "drop") %>%
+  arrange(Conference_Year, desc(n))
+
+top5Text_year <- topText_year %>%
+  group_by(Conference_Year) %>%
+  slice_max(n, n = 5) %>%
+  arrange(Conference_Year, desc(n))
+top5Text_year
+```
+
+```{r topText_Plot}
+ggplot(top5Text_year,
+       aes(x = reorder_within(word, n, Conference_Year),
+           y = n,
+           fill = Conference_Year)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ Conference_Year, scales = "free") +
+  coord_flip() +
+  scale_x_reordered() +
+  theme_minimal() +
+  labs(title = "Top Words by Year",
+       x = NULL,
+       y = "Count")
+```
+
+```{r topTextAcrossYr}
+#top-5 list
+top5Text_year <- topText_year %>%
+  group_by(Conference_Year) %>%
+  slice_max(n, n = 5, with_ties = FALSE) %>%
+  ungroup()
+
+years <- top5Text_year %>%
+  distinct(Conference_Year) %>%
+  arrange(Conference_Year) %>%
+  pull(Conference_Year)
+
+#number of years words are in top-5
+textStatus <- top5Text_year %>%
+  group_by(word) %>%
+  summarize(nYearsTop5 = n_distinct(Conference_Year), .groups = "drop") %>%
+  mutate(allYears = (nYearsTop5 == length(years)))
+
+#words in top-5 all years
+allYearText <- textStatus %>%
+  filter(allYears) %>%
+  pull(word)
+
+#words in top-5 some years
+otherText <- textStatus %>%
+  filter(!allYears) %>%
+  pull(word)
+
+#only top 5 points
+textYear <- top5Text_year %>%
+  select(Conference_Year, word, n) |>
+  group_by(Conference_Year) |>
+  mutate(total = sum(n)) |>
+  ungroup()
+```
+
+```{r topTextAcrossYr_Plot}
+ggplot() +
+  geom_line(
+    data = textYear %>% filter(word %in% allYearText),
+    aes(x = Conference_Year, y = n / total, color = word, group = word),
+    linewidth = 1
+  ) +
+  geom_point(
+    data = textYear %>% filter(word %in% allYearText),
+    aes(x = Conference_Year, y = n / total, color = word),
+    size = 2
+  ) +
+  geom_point(
+    data = textYear %>% filter(word %in% otherText),
+    aes(x = Conference_Year, y = n / total),
+    shape = 17,
+    size = 2,
+    color = "grey40"
+  ) +
+  scale_x_continuous(breaks = years) +
+  theme_minimal() +
+  labs(
+    title = "Presentation Top-5 Words Over Time",
+    x = "Year", y = "Top-5 Count", color = "Top-5 every year"
+  )
+```
+
+
+
+
+
