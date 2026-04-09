@@ -3,6 +3,14 @@ title: "preprocessing"
 format: html
 ---
 
+## Loading Data
+
+```{r}
+# read excel as dataframe, and consider all blank, "NA", and "N/A" as NA type for R
+conf_data <- readxl::read_excel("../data/data.xlsx", na = c("", "NA", "N/A"))
+```
+
+
 ## Network Analysis
 
 ### Filter Speech
