@@ -1,6 +1,5 @@
 *.html
 .Rproj.user/
-data
 .Rhistory
 .positai
 .RData
