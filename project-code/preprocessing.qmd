@@ -7,6 +7,9 @@ format: html
 
 ```{r}
 # read excel as dataframe, and consider all blank, "NA", and "N/A" as NA type for R
+library(tidyverse)
+library(eurostat)
+
 conf_data <- readxl::read_excel("../data/data.xlsx", na = c("", "NA", "N/A"))
 ```
 
@@ -50,32 +53,25 @@ library(textclean)
 
 ```{r}
 speech_filter$speech <- speech_filter$speech |>
-  replace_contraction() # splits contractions, ie can't -> can not
+  replace_contraction()
 ```
 
-#### Lemmatization and Filter Stop Words and Digits
+#### Filter Stop Words and Digits
 
 ```{r}
 cleaned_speech <- speech_filter |>
-  unnest_tokens(output = word, input = speech) |> # turn speech into words
-  filter(!str_detect(word, "\\d")) |> # filter out numbers using regex
-  mutate(word = str_remove(word, "^_+"), # filters out strings that contains underscores
-         lemma = lemmatize_words(word)) |> # adds a column for the lemmatized words, "lemma", ie runs, ran -> run
-  anti_join(stop_words, by = c("lemma" = "word")) |> # removes stop words if the word is in the "lemma" column
-  group_by(cyear, ctitle, speaker, sid) |> # primary key grouping (uniquely identify each speech)
-  summarize(speech = paste(lemma, collapse = " "), .groups = "drop") |> # combine words back into speech
-  ungroup() # undos prior grouping
+  unnest_tokens(output = word, input = speech) |>
+  filter(!str_detect(word, "\\d")) |>
+  mutate(word = str_remove(word, "^_+")) |>
+  anti_join(stop_words, by = "word") |>
+  group_by(cyear, ctitle, speaker, sid) |>
+  summarize(speech = paste(word, collapse = " "), .groups = "drop") |>
+  ungroup()
 ```
 
-#### N-Grams
+#### Output
 
 ```{r}
-unigrams <- cleaned_speech |>
-  unnest_tokens(output = word, input = speech) # splits speech into individual words, unigrams
-
-bigrams <- cleaned_speech |>
-  unnest_tokens(output = word, input = speech, token = "ngrams", n = 2) # splits speech into bigrams
-
-trigrams <- cleaned_speech |>
-  unnest_tokens(output = word, input = speech, token = "ngrams", n = 3) # splits speech into trigrams
+# write.csv(cleaned_speech, "../data/cleaned_speech.csv", row.names = F)
 ```
+
