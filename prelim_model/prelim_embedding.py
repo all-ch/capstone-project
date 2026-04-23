@@ -131,7 +131,9 @@ if __name__ == "__main__":
     plt.xlabel("Year")
     plt.ylabel("Average Religion Topic Score")
     plt.title("Average Religion Topic Score by Year")
-    plt.show()
+    plt.savefig('visualization/yearly_religion_scores.png', dpi=300, bbox_inches='tight')
+    plt.close()  # Important: close the figure
+    print("Saved yearly_religion_scores.png")
 
     # Maybe? Like another Topic Vector for something else, would need more anchor words
 
@@ -142,36 +144,36 @@ if __name__ == "__main__":
     non_religious_score = compute_word_level_topic_score(non_religious_text, religion_topic_vector)
 
 
-    print("calculating")
-
     religious_score = compute_word_level_topic_score(religious_text, religion_topic_vector)
     non_religious_score = compute_word_level_topic_score(non_religious_text, religion_topic_vector)
 
-    print("done calculating")
     # Side-by-side histograms (easier to compare)
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
     axes[0].hist(religious_score, bins=30, alpha=0.7, color='steelblue', edgecolor='black')
-    axes[0].set_title('Religious Speech\nWord-Level Religion Scores')
+    axes[0].set_title('Religious Speech By Archbishop Dmitry Smirnov\nWord-Level Religion Scores')
     axes[0].set_xlabel('Religion Topic Score')
     axes[0].set_ylabel('Frequency')
     axes[0].axvline(np.mean(religious_score), color='red', linestyle='--', label=f'Mean: {np.mean(religious_score):.3f}')
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
+    axes[0].set_xlim(-0.5, 0.5)  # Set same x-axis limits for better comparison
 
     axes[1].hist(non_religious_score, bins=30, alpha=0.7, color='coral', edgecolor='black')
-    axes[1].set_title('Non-Religious Speech\nWord-Level Religion Scores')
+    axes[1].set_title('Non-Religious Speech By Craig A. Cardon\nWord-Level Religion Scores')
     axes[1].set_xlabel('Religion Topic Score')
     axes[1].set_ylabel('Frequency')
     axes[1].axvline(np.mean(non_religious_score), color='red', linestyle='--', label=f'Mean: {np.mean(non_religious_score):.3f}')
     axes[1].legend()
     axes[1].grid(True, alpha=0.3)
+    axes[1].set_xlim(-0.5, 0.5)  # Set same x-axis limits for better comparison
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig('visualization/histogram_comparison.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    print("Saved histogram_comparison.png")
 
     print("done")
-
 
     # Different Aggregation Methods: Box Plot Comparison of Religious vs Non-Religious Speech
 
