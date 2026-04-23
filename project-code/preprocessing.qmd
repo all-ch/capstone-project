@@ -72,6 +72,6 @@ cleaned_speech <- speech_filter |>
 #### Output
 
 ```{r}
-# write.csv(cleaned_speech, "../data/cleaned_speech.csv", row.names = F)
+# write.csv(speech_filter, "../data/speeches.csv", row.names = F)
 ```
 
