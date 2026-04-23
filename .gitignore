@@ -3,3 +3,5 @@
 .Rhistory
 .positai
 .RData
+.vscode/
+.DS_Store
