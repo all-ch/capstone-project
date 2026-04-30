@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import spacy
+from spacy.language import Language
 import seaborn as sns
 
 
@@ -50,13 +51,13 @@ def get_speech_embeds(
 if __name__ == "__main__":
     # load core data and models
     model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-    data = pd.read_csv("../data/speeches.csv")
+    data = pd.read_csv("data/speeches.csv")
     nlp = spacy.load("en_core_web_sm")
     scalar = StandardScaler()
 
     # religious axis embeddings
-    religion_neg = get_anchor_embeds("../data/religion_neg.csv", model)
-    religion_pos = get_anchor_embeds("../data/religion_pos.csv", model)
+    religion_neg = get_anchor_embeds("data/prelim_religion_neg_anchors.csv", model)
+    religion_pos = get_anchor_embeds("data/prelim_religion_pos_anchors.csv", model)
     religion_axis = get_anchor_axis(religion_pos, religion_neg)
 
     # example text embeddings
