@@ -9,8 +9,9 @@ format: html
 # read excel as dataframe, and consider all blank, "NA", and "N/A" as NA type for R
 library(tidyverse)
 library(eurostat)
+library(here)
 
-conf_data <- readxl::read_excel("../data/data.xlsx", na = c("", "NA", "N/A"))
+conf_data <- readxl::read_excel(here("data/raw", "data.xlsx"), na = c("", "NA", "N/A"))
 ```
 
 
