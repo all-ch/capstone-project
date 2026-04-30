@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from pathlib import Path
 from torch import Tensor
 import numpy as np
 import pandas as pd
@@ -10,7 +11,12 @@ from spacy.language import Language
 import seaborn as sns
 
 
-def get_anchor_embeds(location: str, model: SentenceTransformer) -> Tensor | np.ndarray:
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+
+def get_anchor_embeds(
+    location: str | Path, model: SentenceTransformer
+) -> Tensor | np.ndarray:
     return model.encode(pd.read_csv(location, header=None)[0].tolist())
 
 
@@ -25,7 +31,7 @@ def avg_vec(embeddings: Tensor | np.ndarray) -> Tensor | np.ndarray:
 def get_anchor_axis(
     pos_embeds: Tensor | np.ndarray, neg_embeds: Tensor | np.ndarray
 ) -> Tensor | np.ndarray:
-    return avg_vec(pos_embeds) - avg_vec(neg_embeds)
+    return (avg_vec(pos_embeds) + avg_vec(neg_embeds)) / 2
 
 
 def split_speech(text: str, nlp: Language) -> list[str]:
@@ -36,7 +42,7 @@ def split_speech(text: str, nlp: Language) -> list[str]:
 def find_speech(speaker: str, cyear: int | None = None) -> str:
     speech = (
         data[data.speaker == speaker]["speech"]
-        if cyear == None
+        if cyear is None
         else data[(data.speaker == speaker) & (data.cyear == cyear)]["speech"]
     )
     return speech.item()
@@ -51,13 +57,18 @@ def get_speech_embeds(
 if __name__ == "__main__":
     # load core data and models
     model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-    data = pd.read_csv("data/speeches.csv")
+    data_file = ROOT_DIR / "data/processed/speeches.csv"
+    data = pd.read_csv(data_file)
     nlp = spacy.load("en_core_web_sm")
     scalar = StandardScaler()
 
     # religious axis embeddings
-    religion_neg = get_anchor_embeds("data/prelim_religion_neg_anchors.csv", model)
-    religion_pos = get_anchor_embeds("data/prelim_religion_pos_anchors.csv", model)
+    religion_neg_df, religion_pos_df = (
+        ROOT_DIR / "data/anchors/prelim_religion_neg_anchors.csv",
+        ROOT_DIR / "data/anchors/prelim_religion_pos_anchors.csv",
+    )
+    religion_neg = get_anchor_embeds(religion_neg_df, model)
+    religion_pos = get_anchor_embeds(religion_pos_df, model)
     religion_axis = get_anchor_axis(religion_pos, religion_neg)
 
     # example text embeddings
