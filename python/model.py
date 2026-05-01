@@ -68,12 +68,15 @@ if __name__ == "__main__":
     yearly_religion_scores = compute_yearly_topic_scores(
         data, religion_axis, nlp, model
     )
-    plt.plot(list(yearly_religion_scores.keys()), list(yearly_religion_scores.values()))
+
+    years, scores = (
+        np.array(yearly_religion_scores.keys()),
+        np.array(yearly_religion_scores.values()),
+    )
+
+    plt.plot(years, scores)
 
     plt.axhline(0, color="red", linestyle="--", linewidth=1, label="Neutral Threshold")
-
-    years = np.array(list(yearly_religion_scores.keys()))
-    scores = np.array(list(yearly_religion_scores.values()))
 
     m, b = np.polyfit(years, scores, 1)
     plt.plot(
