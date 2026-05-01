@@ -25,6 +25,22 @@ def get_scores(
     return (pca, scores)
 
 
+def get_labels(
+    topic: str,
+    pos_vec: Tensor | np.ndarray,
+    neg_vec: Tensor | np.ndarray,
+    pos_embeds: Tensor | np.ndarray,
+    neg_embeds: Tensor | np.ndarray,
+) -> np.ndarray:
+    return np.array(
+        [f"Aggregate {topic} Vertex"] * 1
+        + [f"Positive {topic} Anchor Phrases"] * pos_vec.shape[0]
+        + [f"Negative {topic} Anchor Phrases"] * neg_vec.shape[0]
+        + [f"{topic} Text Example"] * pos_embeds.shape[0]
+        + ["Random Text Example"] * neg_embeds.shape[0]
+    )
+
+
 if __name__ == "__main__":
     # load core data and models
     model, data, nlp = embeddings.init_models(
@@ -54,14 +70,10 @@ if __name__ == "__main__":
         religious_embeds,
         rand_embeds,
     )
-    labels = np.array(
-        ["Aggregate Religion Vertex"] * 1
-        + ["Positive Religion Anchor Phrases"] * religion_pos.shape[0]
-        + ["Negative Religion Anchor Phrases"] * religion_neg.shape[0]
-        + ["Religious Text Example"] * religious_embeds.shape[0]
-        + ["Random Text Example"] * rand_embeds.shape[0]
-    )
 
+    labels = get_labels(
+        "Religion", religion_pos, religion_neg, religious_embeds, rand_embeds
+    )
     # plot
     plt.figure(figsize=(10, 7))
     sns.scatterplot(
