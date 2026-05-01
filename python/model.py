@@ -4,6 +4,7 @@ from spacy.language import Language
 from python import embeddings
 from torch import Tensor
 import matplotlib.pyplot as plt
+import matplotlib.axes as axes
 import pandas as pd
 import numpy as np
 
@@ -65,82 +66,50 @@ def save_topic_score_by_year_plot(topic: str, yearly_scores: dict) -> None:
     ax.set_xlabel("Year")
     ax.set_ylabel(f"Average {topic} Topic Score")
     ax.set_title(f"Average {topic} Topic Score by Year")
-    plt.savefig(f"visual/yearly_{topic}_scores.png", dpi=300, bbox_inches="tight")
+    plt.savefig(
+        f"outputs/plots/yearly_{topic}_scores.png", dpi=300, bbox_inches="tight"
+    )
     plt.close()
 
 
-def conf_hist_plot(topic: str, title: str, axis: Tensor | np.ndarray):
-    pass
-
-
-def save_hist_comparison_plot():
-    pass
-
-
-if __name__ == "__main__":
-    # load core data and models
-    model, data, nlp = embeddings.init_models(
-        "sentence-transformers/all-mpnet-base-v2",
-        "data/processed/speeches.csv",
-        "en_core_web_sm",
-    )
-
-    # religious axis embeddings
-    religion_pos, religion_neg, religion_axis = embeddings.init_vec(
-        "data/anchors/religion_pos_phrases.csv",
-        "data/anchors/religion_neg_phrases.csv",
-        model,
-    )
-
-    # religion topic score by year plot
-    yearly_religion_scores = compute_yearly_topic_scores(
-        data, religion_axis, nlp, model
-    )
-
-    save_topic_score_by_year_plot("Religion", yearly_religion_scores)
-
-    # histogram religious vs random sentence level scores comparison plot
-    religious_score_dist = compute_sent_level_topic_score_dist(
-        embeddings.get_speech_embeds(nlp, model, data, "Michael Gold "), religion_axis
-    )
-    rand_score_dist = compute_sent_level_topic_score_dist(
-        embeddings.get_speech_embeds(nlp, model, data, "Akira Morita", 1997),
-        religion_axis,
-    )
-
-    fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-
-    # todo: could write into a function to remove redundancy
-    ax1.hist(
-        religious_score_dist, bins=30, alpha=0.7, color="steelblue", edgecolor="black"
-    )
-    ax1.set_title("Religious Speech By Michael Gold\nSentence-Level Religion Scores")
-    ax1.set_xlabel("Religion Topic Score")
-    ax1.set_ylabel("Frequency")
-    ax1.axvline(
-        np.mean(religious_score_dist),
+def conf_hist_plot(
+    topic: str,
+    title: str,
+    speaker: str,
+    ax: axes.Axes,
+    axis: Tensor | np.ndarray,
+    embeds: Tensor | np.ndarray,
+) -> None:
+    score_dist = compute_sent_level_topic_score_dist(embeds, axis)
+    ax.hist(score_dist, bins=30, alpha=0.7, color="steelblue", edgecolor="black")
+    ax.set_title(f"{title} Speech By {speaker}\nSentence-Level {topic} Scores")
+    ax.set_xlabel(f"{topic} Topic Score")
+    ax.set_ylabel("Frequency")
+    ax.axvline(
+        float(np.mean(score_dist)),
         color="red",
         linestyle="--",
-        label=f"Mean: {np.mean(religious_score_dist):.3f}",
+        label=f"Mean: {np.mean(score_dist):.3f}",
     )
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
-    ax1.set_xlim(-0.5, 0.5)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    ax.set_xlim(-0.5, 0.5)
 
-    ax2.hist(rand_score_dist, bins=30, alpha=0.7, color="coral", edgecolor="black")
-    ax2.set_title("Random Speech by Akira Morita\nSentence-Level Religion Scores")
-    ax2.set_xlabel("Religion Topic Score")
-    ax2.set_ylabel("Frequency")
-    ax2.axvline(
-        np.mean(rand_score_dist),
-        color="red",
-        linestyle="--",
-        label=f"Mean: {np.mean(rand_score_dist):.3f}",
-    )
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    ax2.set_xlim(-0.5, 0.5)
 
+def save_hist_comparison_plot(
+    topic: str,
+    neutral: str,
+    topic_spkr: str,
+    neutral_spkr: str,
+    axis: Tensor | np.ndarray,
+    topic_embeds: Tensor | np.ndarray,
+    neutral_embeds: Tensor | np.ndarray,
+):
+    _, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+    conf_hist_plot(topic, topic, topic_spkr, ax1, axis, topic_embeds)
+    conf_hist_plot(topic, neutral, neutral_spkr, ax2, axis, neutral_embeds)
     plt.tight_layout()
-    plt.savefig("visual/histogram_comparison.png", dpi=300, bbox_inches="tight")
+    plt.savefig(
+        f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight"
+    )
     plt.close()

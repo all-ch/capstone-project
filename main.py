@@ -74,12 +74,36 @@ def main():
             TOPICS[topic]["Positive"], TOPICS[topic]["Negative"], model
         )
 
-        print(f"saving {topic} pca plot...")
+        print(f"creating {topic} pca plot...")
         pca.save_pca_plot(
             topic, scalar, 2, pos_vec, neg_vec, topic_axis, topic_embeds, neutral_embeds
         )
 
         print(f"saved {topic} pca plot!")
+
+        print(f"computing {topic} topic scores by year...")
+        topic_scores_by_years = tm.compute_yearly_topic_scores(
+            data, topic_axis, nlp, model
+        )
+
+        print(f"creating {topic} topic scores by year plot...")
+        tm.save_topic_score_by_year_plot(topic, topic_scores_by_years)
+
+        print(f"saved {topic} topic scores by year plot!")
+
+        print(f"creating {topic} histogram comparison plot...")
+        tm.save_hist_comparison_plot(
+            topic,
+            "Neutral",
+            TOPICS[topic]["Speaker"],
+            TOPICS["Neutral"]["Speaker"],
+            topic_axis,
+            topic_embeds,
+            neutral_embeds,
+        )
+
+        print(f"saved {topic} histogram comparison plots!")
+    print("script finished.")
 
 
 if __name__ == "__main__":
