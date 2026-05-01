@@ -69,5 +69,5 @@ def save_pca_plot(
     pca, scores = get_scores(scalar, n, pos_vec, neg_vec, axis, pos_embeds, neg_embeds)
     labels = get_labels(topic, pos_vec, neg_vec, pos_embeds, neg_embeds)
     add_to_plot(pca, scores, labels)
-    plt.savefig("visual/pca.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"visual/{topic}_pca.png", dpi=300, bbox_inches="tight")
     plt.close()
