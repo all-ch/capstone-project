@@ -73,3 +73,17 @@ def init_vec(
     pos_embeds = get_anchor_embeds(pos_df, model)
     neg_embeds = get_anchor_embeds(neg_df, model)
     return [pos_embeds, neg_embeds, get_anchor_axis(pos_embeds, neg_embeds)]
+
+
+def init_speech_embeds(
+    nlp: Language,
+    model: SentenceTransformer,
+    data: pd.DataFrame,
+    topic_speaker: str,
+    neutral_speaker: str,
+    topic_year: int | None = None,
+    neutral_year: int | None = None,
+) -> list[Tensor | np.ndarray]:
+    topic_embeds = get_speech_embeds(nlp, model, data, topic_speaker, topic_year)
+    neutral_embeds = get_speech_embeds(nlp, model, data, neutral_speaker, neutral_year)
+    return [topic_embeds, neutral_embeds]

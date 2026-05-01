@@ -4,7 +4,6 @@ from torch import Tensor
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import embeddings
 
 
 def get_scores(
@@ -57,42 +56,18 @@ def add_to_plot(pca: PCA, scores: np.ndarray, labels: np.ndarray) -> None:
     plt.grid(True, linestyle="--", alpha=0.6)
 
 
-if __name__ == "__main__":
-    # load core data and models
-    model, data, nlp = embeddings.init_models(
-        "sentence-transformers/all-mpnet-base-v2",
-        "data/processed/speeches.csv",
-        "en_core_web_sm",
-    )
-    scalar = StandardScaler()
-
-    # religion section
-    religion_pos, religion_neg, religion_axis = embeddings.init_vec(
-        "data/anchors/religion_pos_phrases.csv",
-        "data/anchors/religion_neg_phrases.csv",
-        model,
-    )
-
-    # example text embeddings
-    religion_embeds = embeddings.get_speech_embeds(nlp, model, data, "Michael Gold ")
-    rand_embeds = embeddings.get_speech_embeds(nlp, model, data, "Akira Morita", 1997)
-
-    # pca
-    religion_pca, religion_scores = get_scores(
-        scalar,
-        2,
-        religion_pos,
-        religion_neg,
-        religion_axis,
-        religion_embeds,
-        rand_embeds,
-    )
-
-    religion_labels = get_labels(
-        "Religion", religion_pos, religion_neg, religion_embeds, rand_embeds
-    )
-    # plot
-    add_to_plot(religion_pca, religion_scores, religion_labels)
-
+def save_pca_plot(
+    topic: str,
+    scalar: StandardScaler,
+    n: int,
+    pos_vec: Tensor | np.ndarray,
+    neg_vec: Tensor | np.ndarray,
+    axis: Tensor | np.ndarray,
+    pos_embeds: Tensor | np.ndarray,
+    neg_embeds: Tensor | np.ndarray,
+):
+    pca, scores = get_scores(scalar, n, pos_vec, neg_vec, axis, pos_embeds, neg_embeds)
+    labels = get_labels(topic, pos_vec, neg_vec, pos_embeds, neg_embeds)
+    add_to_plot(pca, scores, labels)
     plt.savefig("visual/pca.png", dpi=300, bbox_inches="tight")
     plt.close()
