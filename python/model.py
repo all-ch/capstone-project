@@ -47,6 +47,10 @@ def compute_sent_level_topic_score_dist(
     return sent_scores
 
 
+def save_topic_score_by_year_plot(scores: dict) -> None:
+    return
+
+
 if __name__ == "__main__":
     # load core data and models
     model, data, nlp = embeddings.init_models(

@@ -65,7 +65,7 @@ def save_pca_plot(
     axis: Tensor | np.ndarray,
     pos_embeds: Tensor | np.ndarray,
     neg_embeds: Tensor | np.ndarray,
-):
+) -> None:
     pca, scores = get_scores(scalar, n, pos_vec, neg_vec, axis, pos_embeds, neg_embeds)
     labels = get_labels(topic, pos_vec, neg_vec, pos_embeds, neg_embeds)
     add_to_plot(pca, scores, labels)
