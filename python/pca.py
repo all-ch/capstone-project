@@ -67,4 +67,5 @@ if __name__ == "__main__":
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%} variance)", fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.6)
 
-    plt.show()
+    plt.savefig("visual/pca.png", dpi=300, bbox_inches="tight")
+    plt.close()

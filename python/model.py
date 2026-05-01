@@ -92,7 +92,8 @@ if __name__ == "__main__":
     ax.set_ylabel("Average Religion Topic Score")
     ax.set_title("Average Religion Topic Score by Year")
 
-    plt.show()
+    plt.savefig("visual/yearly_religion_scores.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
     # histogram religious vs random sentence level scores comparison plot
     religious_score_dist = compute_sent_level_topic_score_dist(
@@ -137,4 +138,5 @@ if __name__ == "__main__":
     ax2.set_xlim(-0.5, 0.5)
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig("visual/histogram_comparison.png", dpi=300, bbox_inches="tight")
+    plt.close()
