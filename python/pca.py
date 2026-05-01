@@ -41,40 +41,7 @@ def get_labels(
     )
 
 
-if __name__ == "__main__":
-    # load core data and models
-    model, data, nlp = embeddings.init_models(
-        "sentence-transformers/all-mpnet-base-v2",
-        "data/processed/speeches.csv",
-        "en_core_web_sm",
-    )
-    scalar = StandardScaler()
-
-    religion_pos, religion_neg, religion_axis = embeddings.init_vec(
-        "data/anchors/religion_pos_phrases.csv",
-        "data/anchors/religion_neg_phrases.csv",
-        model,
-    )
-
-    # example text embeddings
-    religious_embeds = embeddings.get_speech_embeds(nlp, model, data, "Michael Gold ")
-    rand_embeds = embeddings.get_speech_embeds(nlp, model, data, "Akira Morita", 1997)
-
-    # PCA
-    pca, scores = get_scores(
-        scalar,
-        2,
-        religion_pos,
-        religion_neg,
-        religion_axis,
-        religious_embeds,
-        rand_embeds,
-    )
-
-    labels = get_labels(
-        "Religion", religion_pos, religion_neg, religious_embeds, rand_embeds
-    )
-    # plot
+def add_to_plot(pca: PCA, scores: np.ndarray, labels: np.ndarray) -> None:
     plt.figure(figsize=(10, 7))
     sns.scatterplot(
         x=scores[:, 0],
@@ -88,6 +55,44 @@ if __name__ == "__main__":
     plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.1%} variance)", fontsize=12)
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%} variance)", fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.6)
+
+
+if __name__ == "__main__":
+    # load core data and models
+    model, data, nlp = embeddings.init_models(
+        "sentence-transformers/all-mpnet-base-v2",
+        "data/processed/speeches.csv",
+        "en_core_web_sm",
+    )
+    scalar = StandardScaler()
+
+    # religion section
+    religion_pos, religion_neg, religion_axis = embeddings.init_vec(
+        "data/anchors/religion_pos_phrases.csv",
+        "data/anchors/religion_neg_phrases.csv",
+        model,
+    )
+
+    # example text embeddings
+    religion_embeds = embeddings.get_speech_embeds(nlp, model, data, "Michael Gold ")
+    rand_embeds = embeddings.get_speech_embeds(nlp, model, data, "Akira Morita", 1997)
+
+    # PCA
+    religion_pca, religion_scores = get_scores(
+        scalar,
+        2,
+        religion_pos,
+        religion_neg,
+        religion_axis,
+        religion_embeds,
+        rand_embeds,
+    )
+
+    religion_labels = get_labels(
+        "Religion", religion_pos, religion_neg, religion_embeds, rand_embeds
+    )
+    # plot
+    add_to_plot(religion_pca, religion_scores, religion_labels)
 
     plt.savefig("visual/pca.png", dpi=300, bbox_inches="tight")
     plt.close()
