@@ -15,14 +15,11 @@ if __name__ == "__main__":
     )
     scalar = StandardScaler()
 
-    # religious axis embeddings
-    religion_neg_df, religion_pos_df = (
-        embeddings.ROOT_DIR / "data/anchors/religion_neg_phrases.csv",
-        embeddings.ROOT_DIR / "data/anchors/religion_pos_phrases.csv",
+    religion_pos, religion_neg, religion_axis = embeddings.init_vec(
+        "data/anchors/religion_pos_phrases.csv",
+        "data/anchors/religion_neg_phrases.csv",
+        model,
     )
-    religion_neg = embeddings.get_anchor_embeds(religion_neg_df, model)
-    religion_pos = embeddings.get_anchor_embeds(religion_pos_df, model)
-    religion_axis = embeddings.get_anchor_axis(religion_pos, religion_neg)
 
     # example text embeddings
     religious_embeds = embeddings.get_speech_embeds(nlp, model, data, "Michael Gold ")
