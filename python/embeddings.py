@@ -4,6 +4,7 @@ from pathlib import Path
 from torch import Tensor
 import pandas as pd
 import numpy as np
+import spacy
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -51,3 +52,14 @@ def get_speech_embeds(
     cyear: int | None = None,
 ) -> Tensor | np.ndarray:
     return get_sent_embeds(split_speech(find_speech(data, speaker, cyear), nlp), model)
+
+
+def init_models(
+    model_name: str, data_file: str | Path, nlp_name: str
+) -> tuple[SentenceTransformer, pd.DataFrame, Language]:
+    data_file = ROOT_DIR / data_file
+    return (
+        SentenceTransformer(model_name),
+        pd.read_csv(data_file),
+        spacy.load(nlp_name),
+    )

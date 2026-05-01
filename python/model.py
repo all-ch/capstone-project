@@ -50,10 +50,11 @@ def compute_sent_level_topic_score_dist(
 
 if __name__ == "__main__":
     # load core data and models
-    model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-    data_file = embeddings.ROOT_DIR / "data/processed/speeches.csv"
-    data = pd.read_csv(data_file)
-    nlp = spacy.load("en_core_web_sm")
+    model, data, nlp = embeddings.init_models(
+        "sentence-transformers/all-mpnet-base-v2",
+        "data/processed/speeches.csv",
+        "en_core_web_sm",
+    )
 
     # religious axis embeddings
     religion_neg_df, religion_pos_df = (
