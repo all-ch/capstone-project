@@ -1,20 +1,18 @@
-from sentence_transformers import SentenceTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd
 import numpy as np
 import embeddings
-import spacy
 
 
 if __name__ == "__main__":
     # load core data and models
-    model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-    data_file = embeddings.ROOT_DIR / "data/processed/speeches.csv"
-    data = pd.read_csv(data_file)
-    nlp = spacy.load("en_core_web_sm")
+    model, data, nlp = embeddings.init_models(
+        "sentence-transformers/all-mpnet-base-v2",
+        "data/processed/speeches.csv",
+        "en_core_web_sm",
+    )
     scalar = StandardScaler()
 
     # religious axis embeddings
@@ -67,5 +65,5 @@ if __name__ == "__main__":
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%} variance)", fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.6)
 
-    plt.savefig("visual/pca.png", dpi=300, bbox_inches="tight")
-    plt.close()
+    # plt.savefig("visual/pca.png", dpi=300, bbox_inches="tight")
+    plt.show()
