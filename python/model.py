@@ -69,17 +69,17 @@ if __name__ == "__main__":
         data, religion_axis, nlp, model
     )
 
-    years, scores = (
-        np.array(yearly_religion_scores.keys()),
-        np.array(yearly_religion_scores.values()),
-    )
+    years = np.array(list(yearly_religion_scores.keys()))
+    scores = np.array(list(yearly_religion_scores.values()))
 
-    plt.plot(years, scores)
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    ax.plot(years, scores)
 
-    plt.axhline(0, color="red", linestyle="--", linewidth=1, label="Neutral Threshold")
+    ax.axhline(0, color="red", linestyle="--", linewidth=1, label="Neutral Threshold")
 
     m, b = np.polyfit(years, scores, 1)
-    plt.plot(
+    ax.plot(
         years,
         m * years + b,
         color="blue",
@@ -88,15 +88,13 @@ if __name__ == "__main__":
         label="Trend Line",
     )
 
-    plt.xlabel("Year")
-    plt.ylabel("Average Religion Topic Score")
-    plt.title("Average Religion Topic Score by Year")
-    plt.savefig("visual/yearly_religion_scores.png", dpi=300, bbox_inches="tight")
-    plt.close()
-    print("Saved yearly_religion_scores.png")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Average Religion Topic Score")
+    ax.set_title("Average Religion Topic Score by Year")
 
-    # Plot 2: Histogram Word-Level Comparison of Religious vs Non-Religious Speech (Archbishop Dmitry Smirnov vs Craig A. Cardon)
+    plt.show()
 
+    # histogram religious vs random sentence level scores comparison plot
     religious_score_dist = compute_sent_level_topic_score_dist(
         embeddings.get_speech_embeds(nlp, model, data, "Michael Gold "), religion_axis
     )
@@ -105,44 +103,38 @@ if __name__ == "__main__":
         religion_axis,
     )
 
-    # Side-by-side histograms (easier to compare)
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    axes[0].hist(
+    # todo: could write into a function to remove redundancy
+    ax1.hist(
         religious_score_dist, bins=30, alpha=0.7, color="steelblue", edgecolor="black"
     )
-    axes[0].set_title(
-        "Religious Speech By Archbishop Dmitry Smirnov\nWord-Level Religion Scores"
-    )
-    axes[0].set_xlabel("Religion Topic Score")
-    axes[0].set_ylabel("Frequency")
-    axes[0].axvline(
+    ax1.set_title("Religious Speech By Michael Gold\nSentence-Level Religion Scores")
+    ax1.set_xlabel("Religion Topic Score")
+    ax1.set_ylabel("Frequency")
+    ax1.axvline(
         np.mean(religious_score_dist),
         color="red",
         linestyle="--",
         label=f"Mean: {np.mean(religious_score_dist):.3f}",
     )
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
-    axes[0].set_xlim(-0.5, 0.5)  # Set same x-axis limits for better comparison
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xlim(-0.5, 0.5)
 
-    axes[1].hist(rand_score_dist, bins=30, alpha=0.7, color="coral", edgecolor="black")
-    axes[1].set_title(
-        "Non-Religious Speech By Craig A. Cardon\nWord-Level Religion Scores"
-    )
-    axes[1].set_xlabel("Religion Topic Score")
-    axes[1].set_ylabel("Frequency")
-    axes[1].axvline(
+    ax2.hist(rand_score_dist, bins=30, alpha=0.7, color="coral", edgecolor="black")
+    ax2.set_title("Random Speech by Akira Morita\nSentence-Level Religion Scores")
+    ax2.set_xlabel("Religion Topic Score")
+    ax2.set_ylabel("Frequency")
+    ax2.axvline(
         np.mean(rand_score_dist),
         color="red",
         linestyle="--",
         label=f"Mean: {np.mean(rand_score_dist):.3f}",
     )
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
-    axes[1].set_xlim(-0.5, 0.5)  # Set same x-axis limits for better comparison
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    ax2.set_xlim(-0.5, 0.5)
 
     plt.tight_layout()
-    plt.savefig("visual/histogram_comparison.png", dpi=300, bbox_inches="tight")
-    plt.close()
-    print("Saved histogram_comparison.png")
+    plt.show()
