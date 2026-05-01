@@ -19,8 +19,8 @@ if __name__ == "__main__":
 
     # religious axis embeddings
     religion_neg_df, religion_pos_df = (
-        embeddings.ROOT_DIR / "data/anchors/prelim_religion_neg_anchors.csv",
-        embeddings.ROOT_DIR / "data/anchors/prelim_religion_pos_anchors.csv",
+        embeddings.ROOT_DIR / "data/anchors/religion_neg_phrases.csv",
+        embeddings.ROOT_DIR / "data/anchors/religion_pos_phrases.csv",
     )
     religion_neg = embeddings.get_anchor_embeds(religion_neg_df, model)
     religion_pos = embeddings.get_anchor_embeds(religion_pos_df, model)
