@@ -1,11 +1,11 @@
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from spacy.language import Language
+from python import embeddings
 from torch import Tensor
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import embeddings
 
 
 def compute_speech_topic_score(
