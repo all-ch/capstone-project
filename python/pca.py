@@ -2,56 +2,15 @@ from sentence_transformers import SentenceTransformer
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from pathlib import Path
-from torch import Tensor
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import spacy
-from spacy.language import Language
 import seaborn as sns
+import embeddings
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-
-
-def get_anchor_embeds(
-    location: str | Path, model: SentenceTransformer
-) -> Tensor | np.ndarray:
-    return model.encode(pd.read_csv(location, header=None)[0].tolist())
-
-
-def get_sent_embeds(sent: list[str], model: SentenceTransformer) -> Tensor | np.ndarray:
-    return model.encode(sent)
-
-
-def avg_vec(embeddings: Tensor | np.ndarray) -> Tensor | np.ndarray:
-    return np.mean(embeddings, axis=0)
-
-
-def get_anchor_axis(
-    pos_embeds: Tensor | np.ndarray, neg_embeds: Tensor | np.ndarray
-) -> Tensor | np.ndarray:
-    return (avg_vec(pos_embeds) + avg_vec(neg_embeds)) / 2
-
-
-def split_speech(text: str, nlp: Language) -> list[str]:
-    doc = nlp(text)
-    return [sent.text.strip() for sent in doc.sents]
-
-
-def find_speech(speaker: str, cyear: int | None = None) -> str:
-    speech = (
-        data[data.speaker == speaker]["speech"]
-        if cyear is None
-        else data[(data.speaker == speaker) & (data.cyear == cyear)]["speech"]
-    )
-    return speech.item()
-
-
-def get_speech_embeds(
-    nlp: Language, model: SentenceTransformer, speaker: str, cyear: int | None = None
-) -> Tensor | np.ndarray:
-    return get_sent_embeds(split_speech(find_speech(speaker, cyear), nlp), model)
 
 
 if __name__ == "__main__":
@@ -67,13 +26,13 @@ if __name__ == "__main__":
         ROOT_DIR / "data/anchors/prelim_religion_neg_anchors.csv",
         ROOT_DIR / "data/anchors/prelim_religion_pos_anchors.csv",
     )
-    religion_neg = get_anchor_embeds(religion_neg_df, model)
-    religion_pos = get_anchor_embeds(religion_pos_df, model)
-    religion_axis = get_anchor_axis(religion_pos, religion_neg)
+    religion_neg = embeddings.get_anchor_embeds(religion_neg_df, model)
+    religion_pos = embeddings.get_anchor_embeds(religion_pos_df, model)
+    religion_axis = embeddings.get_anchor_axis(religion_pos, religion_neg)
 
     # example text embeddings
-    religious_embeds = get_speech_embeds(nlp, model, "Michael Gold ")
-    rand_embeds = get_speech_embeds(nlp, model, "Akira Morita", 1997)
+    religious_embeds = embeddings.get_speech_embeds(nlp, model, data, "Michael Gold ")
+    rand_embeds = embeddings.get_speech_embeds(nlp, model, data, "Akira Morita", 1997)
 
     # PCA
     x_combined = np.vstack(
