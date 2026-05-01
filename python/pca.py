@@ -1,30 +1,26 @@
 from sentence_transformers import SentenceTransformer
-from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from pathlib import Path
-import numpy as np
-import pandas as pd
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-import spacy
 import seaborn as sns
+import pandas as pd
+import numpy as np
 import embeddings
-
-
-ROOT_DIR = Path(__file__).resolve().parent.parent
+import spacy
 
 
 if __name__ == "__main__":
     # load core data and models
     model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-    data_file = ROOT_DIR / "data/processed/speeches.csv"
+    data_file = embeddings.ROOT_DIR / "data/processed/speeches.csv"
     data = pd.read_csv(data_file)
     nlp = spacy.load("en_core_web_sm")
     scalar = StandardScaler()
 
     # religious axis embeddings
     religion_neg_df, religion_pos_df = (
-        ROOT_DIR / "data/anchors/prelim_religion_neg_anchors.csv",
-        ROOT_DIR / "data/anchors/prelim_religion_pos_anchors.csv",
+        embeddings.ROOT_DIR / "data/anchors/prelim_religion_neg_anchors.csv",
+        embeddings.ROOT_DIR / "data/anchors/prelim_religion_pos_anchors.csv",
     )
     religion_neg = embeddings.get_anchor_embeds(religion_neg_df, model)
     religion_pos = embeddings.get_anchor_embeds(religion_pos_df, model)

@@ -1,12 +1,12 @@
-import pandas as pd
-import numpy as np
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
+from spacy.language import Language
 from torch import Tensor
 import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import embeddings
 import spacy
-from spacy.language import Language
-import pca
 
 
 def compute_speech_topic_score(
@@ -27,7 +27,8 @@ def compute_yearly_topic_scores(
             group["speech"]
             .apply(
                 lambda x: compute_speech_topic_score(
-                    pca.get_sent_embeds(pca.split_speech(x, nlp), model), topic_vector
+                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
+                    topic_vector,
                 )
             )
             .mean()
@@ -50,20 +51,20 @@ def compute_word_level_topic_score(document_text, topic_vector) -> list:
 if __name__ == "__main__":
     # load core data and models
     model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-    data_file = pca.ROOT_DIR / "data/processed/speeches.csv"
+    data_file = embeddings.ROOT_DIR / "data/processed/speeches.csv"
     data = pd.read_csv(data_file)
     nlp = spacy.load("en_core_web_sm")
 
     # religious axis embeddings
     religion_neg_df, religion_pos_df = (
-        pca.ROOT_DIR / "data/anchors/prelim_religion_neg_anchors.csv",
-        pca.ROOT_DIR / "data/anchors/prelim_religion_pos_anchors.csv",
+        embeddings.ROOT_DIR / "data/anchors/prelim_religion_neg_anchors.csv",
+        embeddings.ROOT_DIR / "data/anchors/prelim_religion_pos_anchors.csv",
     )
-    religion_neg = pca.get_anchor_embeds(religion_neg_df, model)
-    religion_pos = pca.get_anchor_embeds(religion_pos_df, model)
-    religion_axis = pca.get_anchor_axis(religion_pos, religion_neg)
+    religion_neg = embeddings.get_anchor_embeds(religion_neg_df, model)
+    religion_pos = embeddings.get_anchor_embeds(religion_pos_df, model)
+    religion_axis = embeddings.get_anchor_axis(religion_pos, religion_neg)
 
-    # Plot 1: Religion Topic Score by Year
+    # religion topic score by year plot
     yearly_religion_scores = compute_yearly_topic_scores(
         data, religion_axis, nlp, model
     )
@@ -146,4 +147,3 @@ if __name__ == "__main__":
     plt.savefig("visual/histogram_comparison.png", dpi=300, bbox_inches="tight")
     plt.close()
     print("Saved histogram_comparison.png")
-

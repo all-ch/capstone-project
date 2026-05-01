@@ -1,9 +1,12 @@
 from sentence_transformers import SentenceTransformer
+from spacy.language import Language
 from pathlib import Path
 from torch import Tensor
-import numpy as np
 import pandas as pd
-from spacy.language import Language
+import numpy as np
+
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 def get_anchor_embeds(
