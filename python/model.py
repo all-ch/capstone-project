@@ -47,8 +47,34 @@ def compute_sent_level_topic_score_dist(
     return sent_scores
 
 
-def save_topic_score_by_year_plot(scores: dict) -> None:
-    return
+def save_topic_score_by_year_plot(topic: str, yearly_scores: dict) -> None:
+    years = np.array(list(yearly_scores.keys()))
+    scores = np.array(list(yearly_scores.values()))
+    _, ax = plt.subplots()
+    ax.plot(years, scores)
+    ax.axhline(0, color="red", linestyle="--", linewidth=1, label="Neutral Threshold")
+    m, b = np.polyfit(years, scores, 1)
+    ax.plot(
+        years,
+        m * years + b,
+        color="blue",
+        linestyle="--",
+        linewidth=1,
+        label="Trend Line",
+    )
+    ax.set_xlabel("Year")
+    ax.set_ylabel(f"Average {topic} Topic Score")
+    ax.set_title(f"Average {topic} Topic Score by Year")
+    plt.savefig(f"visual/yearly_{topic}_scores.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
+
+def conf_hist_plot(topic: str, title: str, axis: Tensor | np.ndarray):
+    pass
+
+
+def save_hist_comparison_plot():
+    pass
 
 
 if __name__ == "__main__":
@@ -71,31 +97,7 @@ if __name__ == "__main__":
         data, religion_axis, nlp, model
     )
 
-    years = np.array(list(yearly_religion_scores.keys()))
-    scores = np.array(list(yearly_religion_scores.values()))
-
-    fig = plt.figure()
-    ax = fig.add_subplot()
-    ax.plot(years, scores)
-
-    ax.axhline(0, color="red", linestyle="--", linewidth=1, label="Neutral Threshold")
-
-    m, b = np.polyfit(years, scores, 1)
-    ax.plot(
-        years,
-        m * years + b,
-        color="blue",
-        linestyle="--",
-        linewidth=1,
-        label="Trend Line",
-    )
-
-    ax.set_xlabel("Year")
-    ax.set_ylabel("Average Religion Topic Score")
-    ax.set_title("Average Religion Topic Score by Year")
-
-    plt.savefig("visual/yearly_religion_scores.png", dpi=300, bbox_inches="tight")
-    plt.close()
+    save_topic_score_by_year_plot("Religion", yearly_religion_scores)
 
     # histogram religious vs random sentence level scores comparison plot
     religious_score_dist = compute_sent_level_topic_score_dist(
