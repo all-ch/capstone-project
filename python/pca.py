@@ -77,7 +77,7 @@ if __name__ == "__main__":
     religion_embeds = embeddings.get_speech_embeds(nlp, model, data, "Michael Gold ")
     rand_embeds = embeddings.get_speech_embeds(nlp, model, data, "Akira Morita", 1997)
 
-    # PCA
+    # pca
     religion_pca, religion_scores = get_scores(
         scalar,
         2,
