@@ -49,7 +49,7 @@ TOPICS = {
 
 
 def main():
-    print("loading all models and data")
+    print("loading all models and data...")
     model, data, nlp = embeddings.init_models(
         EMBEDDINGS_MODEL,
         DATA_DIR,
@@ -58,7 +58,7 @@ def main():
     scalar = StandardScaler()
 
     for topic in ["Religion"]:  # todo: add in politics and science
-        print(f"loading {topic} example speech embeddings")
+        print(f"loading {topic} example speech embeddings...")
         topic_embeds, neutral_embeds = embeddings.init_speech_embeds(
             nlp,
             model,
@@ -69,15 +69,17 @@ def main():
             TOPICS["Neutral"]["Year"],
         )
 
-        print(f"creating {topic} vectors")
+        print(f"creating {topic} vectors...")
         pos_vec, neg_vec, topic_axis = embeddings.init_vec(
             TOPICS[topic]["Positive"], TOPICS[topic]["Negative"], model
         )
 
-        print(f"saving {topic} pca plot")
+        print(f"saving {topic} pca plot...")
         pca.save_pca_plot(
             topic, scalar, 2, pos_vec, neg_vec, topic_axis, topic_embeds, neutral_embeds
         )
+
+        print(f"saved {topic} pca plot!")
 
 
 if __name__ == "__main__":
