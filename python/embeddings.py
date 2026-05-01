@@ -63,3 +63,13 @@ def init_models(
         pd.read_csv(data_file),
         spacy.load(nlp_name),
     )
+
+
+def init_vec(
+    pos_loc: str | Path, neg_loc: str | Path, model: SentenceTransformer
+) -> list[Tensor | np.ndarray]:
+    pos_df = ROOT_DIR / pos_loc
+    neg_df = ROOT_DIR / neg_loc
+    pos_embeds = get_anchor_embeds(pos_df, model)
+    neg_embeds = get_anchor_embeds(neg_df, model)
+    return [pos_embeds, neg_embeds, get_anchor_axis(pos_embeds, neg_embeds)]
