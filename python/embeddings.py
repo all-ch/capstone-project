@@ -26,7 +26,7 @@ def avg_vec(embeddings: Tensor | np.ndarray) -> Tensor | np.ndarray:
 def get_anchor_axis(
     pos_embeds: Tensor | np.ndarray, neg_embeds: Tensor | np.ndarray
 ) -> Tensor | np.ndarray:
-    return (avg_vec(pos_embeds) + avg_vec(neg_embeds)) / 2
+    return avg_vec(pos_embeds) - avg_vec(neg_embeds)
 
 
 def split_speech(text: str, nlp: Language) -> list[str]:
