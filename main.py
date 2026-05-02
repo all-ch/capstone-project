@@ -8,18 +8,18 @@ NLP_MODEL = "en_core_web_sm"
 
 DATA_DIR = "data/processed/speeches.csv"
 
-RELIGION_POS_DIR = "data/anchors/religion_pos_phrases.csv"
-RELIGION_NEG_DIR = "data/anchors/religion_neg_phrases.csv"
+RELIGION_POS_DIR = "data/anchors/religion_pos_sentences.csv"
+RELIGION_NEG_DIR = "data/anchors/religion_neg_sentences.csv"
 
-POLITICS_POS_DIR = ""
-POLITICS_NEG_DIR = ""
+POLITICS_POS_DIR = "data/anchors/politics_pos_sentences.csv"
+POLITICS_NEG_DIR = "data/anchors/politics_neg_sentences.csv"
 
-SCIENCE_POS_DIR = ""
-SCIENCE_NEG_DIR = ""
+SCIENCE_POS_DIR = "data/anchors/science_pos_sentences.csv"
+SCIENCE_NEG_DIR = "data/anchors/science_neg_sentences.csv"
 
-RELIGION_SPKR, RELIGION_YEAR = "Michael Gold ", None
-POLITICS_SPKR, POLITICS_YEAR = "", None
-SCIENCE_SPKR, SCIENCE_YEAR = "", None
+RELIGION_SPKR, RELIGION_YEAR = "Michael Gold ", 1999
+POLITICS_SPKR, POLITICS_YEAR = "David A. Hartman", 2004
+SCIENCE_SPKR, SCIENCE_YEAR = "Francisco J. González Estepa", 2012
 NEUTRAL_SPKR, NEUTRAL_YEAR = "Akira Morita", 1997
 
 TOPICS = {
@@ -57,7 +57,7 @@ def main():
     )
     scalar = StandardScaler()
 
-    for topic in ["Religion"]:  # todo: add in politics and science
+    for topic in ["Religion", "Politics", "Science"]:
         print(f"loading {topic} example speech embeddings...")
         topic_embeds, neutral_embeds = embeddings.init_speech_embeds(
             nlp,
