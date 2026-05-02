@@ -79,9 +79,10 @@ def conf_hist_plot(
     ax: axes.Axes,
     axis: Tensor | np.ndarray,
     embeds: Tensor | np.ndarray,
+    color: str,
 ) -> None:
     score_dist = compute_sent_level_topic_score_dist(embeds, axis)
-    ax.hist(score_dist, bins=30, alpha=0.7, color="steelblue", edgecolor="black")
+    ax.hist(score_dist, bins=30, alpha=0.7, color=color, edgecolor="black")
     ax.set_title(f"{title} Speech By {speaker}\nSentence-Level {topic} Scores")
     ax.set_xlabel(f"{topic} Topic Score")
     ax.set_ylabel("Frequency")
@@ -104,10 +105,14 @@ def save_hist_comparison_plot(
     axis: Tensor | np.ndarray,
     topic_embeds: Tensor | np.ndarray,
     neutral_embeds: Tensor | np.ndarray,
+    topic_color: str,
+    neutral_color: str,
 ):
     _, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-    conf_hist_plot(topic, topic, topic_spkr, ax1, axis, topic_embeds)
-    conf_hist_plot(topic, neutral, neutral_spkr, ax2, axis, neutral_embeds)
+    conf_hist_plot(topic, topic, topic_spkr, ax1, axis, topic_embeds, topic_color)
+    conf_hist_plot(
+        topic, neutral, neutral_spkr, ax2, axis, neutral_embeds, neutral_color
+    )
     plt.tight_layout()
     plt.savefig(
         f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight"
