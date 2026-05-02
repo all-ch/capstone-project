@@ -100,6 +100,8 @@ def main():
             topic_axis,
             topic_embeds,
             neutral_embeds,
+            "cornflowerblue",
+            "coral",
         )
 
         print(f"saved {topic} histogram comparison plots!")
