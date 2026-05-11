@@ -12,6 +12,7 @@ NLP_MODEL = "en_core_web_sm" # English model for natural language processing tas
 
 # Conference speech data
 DATA_DIR = "data/processed/speeches.csv"
+NEW_DATA_DIR = "data/processed/new_speeches.csv"
 
 # Anchor sentences for each topic, used to define the topic axes in the embedding space
 # NOTE: Sentences were generated using ChatGPT, so they may not be perfect representations, and should be checked for accuracy and relevance to the topic.
@@ -71,7 +72,7 @@ def main():
     print("loading all models and data...")
     model, data, nlp = embeddings.init_models(
         EMBEDDINGS_MODEL,
-        DATA_DIR,
+        NEW_DATA_DIR, #DATA_DIR,
         NLP_MODEL,
     )
     scalar = StandardScaler()
@@ -136,6 +137,8 @@ def main():
 
         print(f"saved {topic} histogram comparison plots!")
     print("script finished.")
+
+
 
 # Running this script will execute the main function, which will load the necessary models and data, compute topic scores for the specified topics, and generate visualizations for each topic.
 #  The generated visualizations will be saved to the appropriate directories for later review and analysis.

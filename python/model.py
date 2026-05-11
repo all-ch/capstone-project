@@ -1,3 +1,6 @@
+# This module contains functions for computing topic scores for conference speeches, generating visualizations of topic score trends over time,
+# and comparing the distribution of sentence-level topic scores between different speeches.
+
 # Natural Language Processing and Text Analysis for Conference Speeches
 from sentence_transformers import SentenceTransformer # For converting sentences into numerical embeddings
 from spacy.language import Language # For natural language processing tasks such as sentence tokenization
@@ -16,8 +19,6 @@ import matplotlib.axes as axes
 
 # Custom module for handling embeddings
 from python import embeddings
-
-
 
 
 def compute_speech_topic_score(sentence_embeddings: np.ndarray | Tensor, topic_vector: np.ndarray | Tensor) -> float:
@@ -129,7 +130,8 @@ def save_topic_score_by_year_plot(topic: str, yearly_scores: dict) -> None:
     ax.set_xlabel("Year")
     ax.set_ylabel(f"Average {topic} Topic Score")
     ax.set_title(f"Average {topic} Topic Score by Year")
-    plt.savefig(f"outputs/plots/yearly_{topic}_scores.png", dpi=300, bbox_inches="tight")
+    #plt.savefig(f"outputs/plots/yearly_{topic}_scores.png", dpi=300, bbox_inches="tight") # for og data
+    plt.savefig(f"outputs/plots/yearly_{topic}_scores_NEW.png", dpi=300, bbox_inches="tight")
 
     plt.close()
 
@@ -198,5 +200,7 @@ def save_hist_comparison_plot( topic: str, neutral: str, topic_spkr: str, neutra
     conf_hist_plot(topic, topic, topic_spkr, ax1, axis, topic_embeds, topic_color)
     conf_hist_plot(topic, neutral, neutral_spkr, ax2, axis, neutral_embeds, neutral_color)
     plt.tight_layout()
-    plt.savefig(f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight")
+    #plt.savefig(f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight") # for og data
+    plt.savefig(f"outputs/plots/{topic}_hist_comparison_NEW.png", dpi=300, bbox_inches="tight")
+
     plt.close()
