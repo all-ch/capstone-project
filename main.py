@@ -6,8 +6,8 @@ from python import embeddings # Custom module for handling sentence embeddings
 from python import model as tm # Custom module for computing topic scores and generating visualizations
 from python import pca # Custom module for performing Principal Component Analysis and generating PCA plots
 
-import pickle
-import os
+import pickle # for saving and loading computed scores
+import os # for checking if cache files exist
 
 # Sentence embedding and natural language processing models
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2" # https://huggingface.co/sentence-transformers/all-mpnet-base-v2, a pre-trained model for generating sentence embeddings
@@ -109,7 +109,8 @@ def main():
             update_scores = True
 
         if update_scores:
-            yearly_topic_scores, yearly_avg_score = tm.compute_yearly_topic_scores(data, topic_axis, nlp, model, q = 0.75)
+            #NOTE: If wanting to change quantile, you're going to. need to recompute scores.
+            yearly_topic_scores, yearly_avg_score = tm.compute_yearly_topic_scores(data, topic_axis, nlp, model, q = 0.75) 
 
             # Save both dictionaries to one file
             with open(cache_path, 'wb') as f:
@@ -146,6 +147,11 @@ def main():
 
         print(f"saved {topic} topic scores by year plot!")
 
+        #
+        tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 1999, "cornflowerblue")
+        tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2007, "cornflowerblue")
+        tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2012, "cornflowerblue")
+        tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2015, "cornflowerblue")
 
         print(f"creating {topic} histogram comparison plot...")
         # Creating histogram comparison plots comparing the distribution of sentence-level topic scores between a specified topic speech and specified neutral speech.
@@ -161,7 +167,6 @@ def main():
             "coral",
         )
 
-        # print(f"saved {topic} histogram comparison plots!")
     print("script finished.")
 
 
