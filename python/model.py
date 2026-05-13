@@ -12,6 +12,7 @@ from torch import Tensor # For handling numerical data in tensor format
 
 # Data handling
 import pandas as pd # for working with dataframes
+import numpy as np # For numerical operations
 
 # Plotting libraries
 import matplotlib.pyplot as plt
@@ -20,6 +21,7 @@ import matplotlib.axes as axes
 # Custom module for handling embeddings
 from python import embeddings
 
+import seaborn as sns # For advanced data visualization, used for creating violin plots and enhancing the aesthetics of plots
 
 def compute_speech_topic_score(sentence_embeddings: np.ndarray | Tensor, topic_vector: np.ndarray | Tensor, q: float = 0.75) -> float:
     """
@@ -233,6 +235,41 @@ def conf_hist_plot(topic: str, title: str, speaker: str, ax: axes.Axes, axis: Te
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.5, 0.5)
 
+def conf_violin_plot_yearly(topic: str, yearly_scores: dict, target_year: int, color: str) -> None:
+    """
+    Creates a violin plot showing the distribution of all speech scores for a specific year.
+    """
+    # 1. Extract the scores for the specific year from your cached data
+    if target_year not in yearly_scores:
+        print(f"Year {target_year} not found in yearly_scores.")
+        return
+        
+    year_data = yearly_scores[target_year] #
+
+    # 2. Setup the plot
+    fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # 3. Create the violin plot
+    # This visualizes the density and range of all speech scores in that year
+    sns.violinplot(x=year_data, ax=ax, color=color, inner="quartile")
+
+    # 4. Add the 75th quantile marker of the yearly distribution
+    q75 = np.quantile(year_data, 0.75) #
+    ax.axvline(
+        float(q75),
+        color="red",
+        linestyle="--",
+        label=f"Yearly 75th Quantile: {q75:.3f}",
+    )
+
+    # 5. Finalizing aesthetics
+    ax.set_title(f"Distribution of {topic} Speech Scores in {target_year}")
+    ax.set_xlabel(f"{topic} Topic Score (Quantile Method)")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    plt.savefig(f"outputs/plots/{topic}_{target_year}_yearly_violin.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
 def save_hist_comparison_plot( topic: str, neutral: str, topic_spkr: str, neutral_spkr: str, axis: Tensor | np.ndarray, topic_embeds: Tensor | np.ndarray, neutral_embeds: Tensor | np.ndarray, topic_color: str, neutral_color: str, ) -> None:
     """
@@ -262,4 +299,3 @@ def save_hist_comparison_plot( topic: str, neutral: str, topic_spkr: str, neutra
     plt.savefig(f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight")
 
     plt.close()
-
