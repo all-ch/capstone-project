@@ -21,21 +21,27 @@ import matplotlib.axes as axes
 from python import embeddings
 
 
-def compute_speech_topic_score(sentence_embeddings: np.ndarray | Tensor, topic_vector: np.ndarray | Tensor) -> float:
+def compute_speech_topic_score(sentence_embeddings: np.ndarray | Tensor, topic_vector: np.ndarray | Tensor, q: float = 0.75) -> float:
     """
     Computes the average cosine similarity between sentence embeddings and a topic vector.
 
     Args:
         sentence_embeddings (np.ndarray | Tensor): The numerical representations of the sentences in a speech, typically of shape (num_sentences, embedding_dim).
         topic_vector (np.ndarray | Tensor): A numerical representation of the topic, typically of shape (embedding_dim,) creagted by averaging the embeddings of keywords related to the topic (created from init_speech_embeds).
+        q (float): The quantile to use for computing the topic score, with a default value of 0.75. 
+        - This parameter allows for a more robust topic score by considering the distribution of sentence-level scores and focuses on the upper quantile.
     Returns:
-        float: The average cosine similarity score for the speech with respect to the topic.
-            - A higher score indicates that the speech is more closely aligned with the topic, while a lower score indicates less alignment.
+        float: The average topic score for the speech, computed as the specified quantile of the cosine similarity scores between the sentence embeddings and the topic vector.
     """
-    return cosine_similarity(sentence_embeddings, topic_vector.reshape(1, -1)).mean()
+    # NOTE: Old implementation
+    #return cosine_similarity(sentence_embeddings, topic_vector.reshape(1, -1)).mean()
+
+    sent_scores = cosine_similarity(sentence_embeddings, topic_vector.reshape(1, -1)).flatten()
+    return float(np.quantile(sent_scores, q))
 
 
-def compute_yearly_topic_scores(conference_data: pd.DataFrame, topic_vector: np.ndarray | Tensor, nlp: Language, model: SentenceTransformer,) -> dict:
+
+def compute_yearly_topic_scores(conference_data: pd.DataFrame, topic_vector: np.ndarray | Tensor, nlp: Language, model: SentenceTransformer, q: float = 0.75) -> tuple[dict, dict]:
     """
     Computes the average topic score for each year in the conference data.
     
@@ -48,25 +54,31 @@ def compute_yearly_topic_scores(conference_data: pd.DataFrame, topic_vector: np.
         topic_vector (np.ndarray | Tensor): A numerical representation of the topic, typically of shape (embedding_dim,) created by averaging the embeddings of keywords related to the topic (created from init_speech_embeds).
         nlp (Language): A spaCy language model used for sentence tokenization.
         model (SentenceTransformer): A sentence transformer model used to generate embeddings for the sentences in the speeches.
+        q (float): The quantile to use for computing the topic score, with a default value of 0.75.
     Returns:
-        dict: A dictionary where the keys are years (cyear) and the values are the average topic scores for the speeches given in that year.
-            - {2000: 0.15, 2001: 0.10, ...} where the keys are years and the values are average topic scores for that year.
-            - The topic score is computed as the average cosine similarity between the sentence embeddings of the speeches and the topic vector.
+    #NOTE: UPDATE THIS
+        tuple[dict, dict]: A tuple containing two dictionaries:
+            - The first dictionary maps each year to a list of topic scores for the speeches given in that year, with the format {year: [topic_score1, topic_score2, ...]}.
+            - The second dictionary maps each year to the average topic score for that year, with the format {year: average_topic_score}, where the average topic score is computed as the mean of the topic scores for all speeches given in that year.
     """ 
 
-    yearly_topic_score = {}
+    yearly_topic_avg_score = {}
+    yearly_topic_scores = {}
     for year, group in conference_data.groupby("cyear"):
-        yearly_topic_score[year] = (
+        topic_scores = (
             group["speech"]
             .apply(
                 lambda x: compute_speech_topic_score(
                     embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
                     topic_vector,
+                    q=q
                 )
             )
-            .mean()
+            .to_list()
         )
-    return yearly_topic_score
+        yearly_topic_scores[year] = topic_scores
+        yearly_topic_avg_score[year] = np.mean(topic_scores)
+    return yearly_topic_scores, yearly_topic_avg_score
 
 
 def compute_sent_level_topic_score_dist(speech_embeddings: Tensor | np.ndarray, topic_vector: Tensor | np.ndarray) -> list:
@@ -131,7 +143,58 @@ def save_topic_score_by_year_plot(topic: str, yearly_scores: dict) -> None:
     ax.set_ylabel(f"Average {topic} Topic Score")
     ax.set_title(f"Average {topic} Topic Score by Year")
     #plt.savefig(f"outputs/plots/yearly_{topic}_scores.png", dpi=300, bbox_inches="tight") # for og data
-    plt.savefig(f"outputs/plots/yearly_{topic}_scores_NEW.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"outputs/plots/yearly_{topic}_scores.png", dpi=300, bbox_inches="tight")
+
+    plt.close()
+
+def conf_boxplot(topic: str, yearly_scores: dict, show_trend: bool = True, trend_method: str = "median") -> None:
+    """
+    Creates a boxplot of topic scores by year for a given topic.
+
+    This function creates a boxplot that visualizes the distribution of topic scores for each year, with an optional trend line to show overall direction.
+
+    Args:
+        topic (str): The name of the topic being plotted, used for labeling the axes.
+        yearly_scores (dict): A dictionary mapping years to lists of topic scores for that year.
+        show_trend (bool): Whether to include a trend line in the plot. Default is True.
+        trend_method (str): The method to use for calculating the trend line, either "median" or "mean". Default is "median".
+    Returns:
+        None: The function saves the plot to a file and does not return any value.
+    """
+    # Setting up the plot
+    years = np.array(list(yearly_scores.keys()))
+    scores = [yearly_scores[year] for year in years]
+    _, ax = plt.subplots()
+
+    # Creating the boxplot
+    ax.boxplot(scores, positions=years, widths=0.7)
+
+    if show_trend:
+        if trend_method == "median":
+            trend_values = [np.median(yearly_scores[year]) for year in years]
+        elif trend_method == "mean":
+            trend_values = [np.mean(yearly_scores[year]) for year in years]
+        else:
+            pass #TODO: more trend methods?
+        if (trend_method in ["median", "mean"]):
+            m, b = np.polyfit(years, trend_values, 1)
+            ax.plot(
+                years,
+                m * years + b,
+                color="blue",
+                linestyle="--",
+                linewidth=1,
+                label=f"{trend_method.capitalize()} Trend Line",
+            )
+
+    # Finalizing the plot
+    ax.set_xlabel("Year")
+    ax.set_xticklabels(years, rotation=45, fontsize=9)
+    ax.set_ylabel(f"{topic} Topic Scores")
+    ax.set_title(f"{topic} Topic Scores by Year")
+    ax.legend()
+    #plt.savefig(f"outputs/plots/boxplot_yearly_{topic}_scores.png", dpi=300, bbox_inches="tight") # for og data
+    plt.savefig(f"outputs/plots/boxplot_yearly_{topic}_scores_quantile.png", dpi=300, bbox_inches="tight")
 
     plt.close()
 
@@ -156,19 +219,15 @@ def conf_hist_plot(topic: str, title: str, speaker: str, ax: axes.Axes, axis: Te
     """
     # Computing sentence-level topic score for the speech
     score_dist = compute_sent_level_topic_score_dist(embeds, axis)
-
-    # Creating the histogram plot
     ax.hist(score_dist, bins=30, alpha=0.7, color=color, edgecolor="black")
-
-    # Adding details to the plot
     ax.set_title(f"{title} Speech By {speaker}\nSentence-Level {topic} Scores")
     ax.set_xlabel(f"{topic} Topic Score")
     ax.set_ylabel("Frequency")
     ax.axvline(
-        float(np.mean(score_dist)),
+        float(np.quantile(score_dist, 0.75)),
         color="red",
         linestyle="--",
-        label=f"Mean: {np.mean(score_dist):.3f}",
+        label=f"75th Quantile: {np.quantile(score_dist, 0.75):.3f}",
     )
     ax.legend()
     ax.grid(True, alpha=0.3)
@@ -200,7 +259,7 @@ def save_hist_comparison_plot( topic: str, neutral: str, topic_spkr: str, neutra
     conf_hist_plot(topic, topic, topic_spkr, ax1, axis, topic_embeds, topic_color)
     conf_hist_plot(topic, neutral, neutral_spkr, ax2, axis, neutral_embeds, neutral_color)
     plt.tight_layout()
-    #plt.savefig(f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight") # for og data
-    plt.savefig(f"outputs/plots/{topic}_hist_comparison_NEW.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight")
 
     plt.close()
+

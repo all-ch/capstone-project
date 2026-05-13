@@ -6,6 +6,9 @@ from python import embeddings # Custom module for handling sentence embeddings
 from python import model as tm # Custom module for computing topic scores and generating visualizations
 from python import pca # Custom module for performing Principal Component Analysis and generating PCA plots
 
+import pickle
+import os
+
 # Sentence embedding and natural language processing models
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2" # https://huggingface.co/sentence-transformers/all-mpnet-base-v2, a pre-trained model for generating sentence embeddings
 NLP_MODEL = "en_core_web_sm" # English model for natural language processing tasks such as sentence tokenization
@@ -15,8 +18,11 @@ DATA_DIR = "data/processed/speeches.csv"
 NEW_DATA_DIR = "data/processed/new_speeches.csv"
 
 # Anchor sentences for each topic, used to define the topic axes in the embedding space
-# NOTE: Sentences were generated using ChatGPT, so they may not be perfect representations, and should be checked for accuracy and relevance to the topic.
-# NOTE: AI generated sentences may contain biases or inaccuracies, so they should be further reviewed and validated.
+# NOTE 1: Sentences were generated using ChatGPT, so they may not be perfect representations, and should be checked for accuracy and relevance to the topic.
+#  AI generated sentences should be further reviewed and validated.
+
+#NOTE 2: If wanting to add more anchors, create a new CSV file with the same format as existing anchor files (no header, sentences in the first column), then
+# add the file path to the appropriate topic in the TOPICS dictionary below, and ensure that the file is located in the correct directory.
 RELIGION_POS_DIR = "data/anchors/religion_pos_sentences.csv"
 RELIGION_NEG_DIR = "data/anchors/religion_neg_sentences.csv"
 
@@ -47,18 +53,18 @@ TOPICS = {
         "Speaker": RELIGION_SPKR,
         "Year": RELIGION_YEAR,
     },
-    "Politics": {
-        "Positive": POLITICS_POS_DIR,
-        "Negative": POLITICS_NEG_DIR,
-        "Speaker": POLITICS_SPKR,
-        "Year": POLITICS_YEAR,
-    },
-    "Science": {
-        "Positive": SCIENCE_POS_DIR,
-        "Negative": SCIENCE_NEG_DIR,
-        "Speaker": SCIENCE_SPKR,
-        "Year": SCIENCE_YEAR,
-    },
+    # "Politics": {
+    #     "Positive": POLITICS_POS_DIR,
+    #     "Negative": POLITICS_NEG_DIR,
+    #     "Speaker": POLITICS_SPKR,
+    #     "Year": POLITICS_YEAR,
+    # },
+    # "Science": {
+    #     "Positive": SCIENCE_POS_DIR,
+    #     "Negative": SCIENCE_NEG_DIR,
+    #     "Speaker": SCIENCE_SPKR,
+    #     "Year": SCIENCE_YEAR,
+    # },
     "Neutral": {
         "Speaker": NEUTRAL_SPKR,
         "Year": NEUTRAL_YEAR,
@@ -81,6 +87,40 @@ def main():
     for topic in TOPICS:
         if topic == "Neutral":
             continue
+
+        print(f"creating {topic} vectors...")
+        # The positive and negative anchor embeddings are initialized based on the specified CSV files for each topic. The topic axis vector is computed as the difference between the average positive embedding and the average negative embedding,
+        #  which defines the direction in the embedding space that represents the topic of interest.
+        pos_vec, neg_vec, topic_axis = embeddings.init_vec(
+            TOPICS[topic]["Positive"], TOPICS[topic]["Negative"], model
+        )
+
+
+        # NOTE: cache system, however since it's inside the loop, it's going to ask for input for each topic
+        cache_path = f"data/processed/{topic}_scores.pkl"
+        update_scores = False
+
+        # Check if the file exists first; if not, we HAVE to calculate
+        if os.path.exists(cache_path):
+            update_scores = input(f"{topic} Cache found. Recompute scores? (Y/N): ").lower()
+            update_scores = (update_scores == 'y')
+        else:
+            print(f"No {topic} cache found. Computing scores..")
+            update_scores = True
+
+        if update_scores:
+            yearly_topic_scores, yearly_avg_score = tm.compute_yearly_topic_scores(data, topic_axis, nlp, model, q = 0.75)
+
+            # Save both dictionaries to one file
+            with open(cache_path, 'wb') as f:
+                pickle.dump((yearly_topic_scores, yearly_avg_score), f)
+            print(f"Scores saved to {cache_path}")
+
+        else:
+            print(f"Loading {topic} scores")
+            with open(cache_path, 'rb') as f:
+                yearly_topic_scores, yearly_avg_score = pickle.load(f)
+
         print(f"loading {topic} example speech embeddings...") 
         # The embeddings for the topic speech and the neutral speech are initialized based on the specified speakers and years for each topic. These embeddings will be used for generating visualizations and computing topic scores.
         topic_embeds, neutral_embeds = embeddings.init_speech_embeds(
@@ -93,33 +133,19 @@ def main():
             TOPICS["Neutral"]["Year"],
         )
 
-        print(f"creating {topic} vectors...")
-        # The positive and negative anchor embeddings are initialized based on the specified CSV files for each topic. The topic axis vector is computed as the difference between the average positive embedding and the average negative embedding,
-        #  which defines the direction in the embedding space that represents the topic of interest.
-        pos_vec, neg_vec, topic_axis = embeddings.init_vec(
-            TOPICS[topic]["Positive"], TOPICS[topic]["Negative"], model
-        )
-
         print(f"creating {topic} pca plot...")
         # PCA plot are generated to visualize distribution of sentence embeddings for topic speech in relation to topic axis.
         pca.save_pca_plot(
             topic, scalar, 2, pos_vec, neg_vec, topic_axis, topic_embeds, neutral_embeds
         )
-
         print(f"saved {topic} pca plot!")
 
-        # Topic scores are computed for each year.
-        #NOTE: The topic scores are computed by projecting the sentence embeddings of the speeches onto the topic axis, 
-        # allowing us to quantify how closely the content of each speech aligns with specified defined topic over time.
-        print(f"computing {topic} topic scores by year...")
-        topic_scores_by_years = tm.compute_yearly_topic_scores(
-            data, topic_axis, nlp, model
-        )
-
-        print(f"creating {topic} topic scores by year plot...")
-        tm.save_topic_score_by_year_plot(topic, topic_scores_by_years)
+        # NEW: boxplot
+        print(f"creating {topic} topic scores by year boxplot...")
+        tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")  
 
         print(f"saved {topic} topic scores by year plot!")
+
 
         print(f"creating {topic} histogram comparison plot...")
         # Creating histogram comparison plots comparing the distribution of sentence-level topic scores between a specified topic speech and specified neutral speech.
@@ -135,7 +161,7 @@ def main():
             "coral",
         )
 
-        print(f"saved {topic} histogram comparison plots!")
+        # print(f"saved {topic} histogram comparison plots!")
     print("script finished.")
 
 
