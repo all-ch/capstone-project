@@ -23,7 +23,7 @@ import matplotlib.axes as axes
 
 # Custom module for handling embeddings
 from python import embeddings
-
+from scipy import stats
 import seaborn as sns  # For advanced data visualization, used for creating violin plots and enhancing the aesthetics of plots
 
 
@@ -210,11 +210,7 @@ def save_topic_score_by_year_plot(topic: str, yearly_scores: dict) -> None:
 
     # Setting up the plot
     years = np.array(list(yearly_scores.keys()))
-
-    scores = [
-        np.mean([1 if score >= 0.05 else 0 for score in yearly_scores[year]])
-        for year in years
-    ]
+    scores = np.array(list(yearly_scores.values()))
 
     _, ax = plt.subplots()
 
@@ -281,13 +277,14 @@ def conf_boxplot(
             pass  # TODO: more trend methods?
         if trend_method in ["median", "mean"]:
             m, b = np.polyfit(years, trend_values, 1)
+            s, i, r, p, e = stats.linregress(years, trend_values)
             ax.plot(
                 years,
                 m * years + b,
                 color="blue",
                 linestyle="--",
                 linewidth=1,
-                label=f"{trend_method.capitalize()} Trend Line",
+                label=f"{trend_method.capitalize()} Trend (Slope:{s:.4f}, p-value:{p:.4f}, se:{e:.4f})",
             )
 
     # Finalizing the plot

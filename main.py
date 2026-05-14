@@ -1,4 +1,5 @@
 # This script serves as the main entry point for the project. It orchestrates the loading of models and data, the computation of topic scores, and the generation of visualizations for conference speeches on various topics.
+import matplotlib.pyplot as plt
 
 # Import necessary libraries and modules
 from sklearn.preprocessing import (
@@ -11,9 +12,10 @@ from python import (
 from python import (
     pca,
 )  # Custom module for performing Principal Component Analysis and generating PCA plots
-
+from sklearn.linear_model import LinearRegression
 import pickle  # for saving and loading computed scores
 import os  # for checking if cache files exist
+import numpy as np
 
 # Sentence embedding and natural language processing models
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"  # https://huggingface.co/sentence-transformers/all-mpnet-base-v2, a pre-trained model for generating sentence embeddings
@@ -70,7 +72,6 @@ TOPICS = {
         "Negative": SCIENCE_NEG_DIR,
         "Speaker": SCIENCE_SPKR,
         "Year": SCIENCE_YEAR,
-        
     },
     "Neutral": {
         "Speaker": NEUTRAL_SPKR,
@@ -164,7 +165,9 @@ def main():
 
         # NEW: boxplot
         print(f"creating {topic} topic scores by year boxplot...")
-        tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
+        tm.conf_boxplot(
+            topic, yearly_topic_scores, show_trend=True, trend_method="mean"
+        )
         # tm.conf_boxplot(f"{topic} Positive Proportion", yearly_topic_proportions, show_trend=True, trend_method="mean",)
 
         print(f"saved {topic} topic scores by year plot!")
@@ -191,7 +194,6 @@ def main():
         print("tyler the goat")
         # tm.the_goat_tyler(topic, yearly_topic_scores)
         # tm.save_topic_score_by_year_plot(topic, yearly_topic_scores)
-
     print("script finished.")
 
 
