@@ -358,3 +358,33 @@ def save_hist_comparison_plot(
     )
 
     plt.close()
+
+
+def the_goat_tyler(
+    topic: str,
+    yearly_scores: dict,
+) -> None:
+    """
+    who else but the goat?
+    """
+    # Setting up the plot
+    years = np.array(list(yearly_scores.keys()))
+    scores = [yearly_scores[year] for year in years]
+    _, ax = plt.subplots()
+
+    # Creating the boxplot
+    ax.violinplot(scores, positions=years, showmedians=True)
+
+    ax.set_xlabel("Year")
+    ax.set_xticklabels(years, rotation=45, fontsize=9)
+    ax.set_ylabel(f"{topic} Topic Scores")
+    ax.set_title(f"{topic} Topic Scores by Year")
+    ax.legend()
+    # plt.savefig(f"outputs/plots/boxplot_yearly_{topic}_scores.png", dpi=300, bbox_inches="tight") # for og data
+    plt.savefig(
+        f"outputs/plots/violinplot_yearly_{topic}_scores_quantile.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    plt.close()
