@@ -59,18 +59,19 @@ TOPICS = {
         "Speaker": RELIGION_SPKR,
         "Year": RELIGION_YEAR,
     },
-    # "Politics": {
-    #     "Positive": POLITICS_POS_DIR,
-    #     "Negative": POLITICS_NEG_DIR,
-    #     "Speaker": POLITICS_SPKR,
-    #     "Year": POLITICS_YEAR,
-    # },
-    # "Science": {
-    #     "Positive": SCIENCE_POS_DIR,
-    #     "Negative": SCIENCE_NEG_DIR,
-    #     "Speaker": SCIENCE_SPKR,
-    #     "Year": SCIENCE_YEAR,
-    # },
+    "Politics": {
+        "Positive": POLITICS_POS_DIR,
+        "Negative": POLITICS_NEG_DIR,
+        "Speaker": POLITICS_SPKR,
+        "Year": POLITICS_YEAR,
+    },
+    "Science": {
+        "Positive": SCIENCE_POS_DIR,
+        "Negative": SCIENCE_NEG_DIR,
+        "Speaker": SCIENCE_SPKR,
+        "Year": SCIENCE_YEAR,
+        
+    },
     "Neutral": {
         "Speaker": NEUTRAL_SPKR,
         "Year": NEUTRAL_YEAR,
@@ -163,7 +164,7 @@ def main():
 
         # NEW: boxplot
         print(f"creating {topic} topic scores by year boxplot...")
-        # tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
+        tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
         # tm.conf_boxplot(f"{topic} Positive Proportion", yearly_topic_proportions, show_trend=True, trend_method="mean",)
 
         print(f"saved {topic} topic scores by year plot!")
@@ -189,7 +190,7 @@ def main():
         # )
         print("tyler the goat")
         # tm.the_goat_tyler(topic, yearly_topic_scores)
-        tm.save_topic_score_by_year_plot(topic, yearly_topic_scores)
+        # tm.save_topic_score_by_year_plot(topic, yearly_topic_scores)
 
     print("script finished.")
 
