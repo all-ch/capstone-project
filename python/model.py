@@ -51,6 +51,7 @@ def compute_speech_topic_score(
     ).flatten()
     return float(np.quantile(sent_scores, q))
 
+
 def compute_speech_topic_proportion(
     sentence_embeddings: np.ndarray | Tensor,
     topic_vector: np.ndarray | Tensor,
@@ -73,8 +74,7 @@ def compute_speech_topic_proportion(
     """
 
     sent_scores = cosine_similarity(
-        sentence_embeddings,
-        topic_vector.reshape(1, -1)
+        sentence_embeddings, topic_vector.reshape(1, -1)
     ).flatten()
 
     return float(np.mean(sent_scores > threshold))
@@ -125,6 +125,7 @@ def compute_yearly_topic_scores(
         yearly_topic_avg_score[year] = np.mean(topic_scores)
     return yearly_topic_scores, yearly_topic_avg_score
 
+
 def compute_yearly_topic_proportions(
     conference_data: pd.DataFrame,
     topic_vector: np.ndarray | Tensor,
@@ -154,10 +155,7 @@ def compute_yearly_topic_proportions(
             group["speech"]
             .apply(
                 lambda x: compute_speech_topic_proportion(
-                    embeddings.get_sent_embeds(
-                        embeddings.split_speech(x, nlp),
-                        model
-                    ),
+                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
                     topic_vector,
                     threshold=threshold,
                 )
@@ -212,7 +210,12 @@ def save_topic_score_by_year_plot(topic: str, yearly_scores: dict) -> None:
 
     # Setting up the plot
     years = np.array(list(yearly_scores.keys()))
-    scores = np.array(list(yearly_scores.values()))
+
+    scores = [
+        np.mean([1 if score >= 0.05 else 0 for score in yearly_scores[year]])
+        for year in years
+    ]
+
     _, ax = plt.subplots()
 
     # Plotting the average topic scores by year

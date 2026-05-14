@@ -122,8 +122,14 @@ def main():
                 data, topic_axis, nlp, model, q=0.75
             )
 
-            yearly_topic_proportions, yearly_avg_proportion = tm.compute_yearly_topic_proportions(
-                data, topic_axis, nlp, model, threshold=0.0,
+            yearly_topic_proportions, yearly_avg_proportion = (
+                tm.compute_yearly_topic_proportions(
+                    data,
+                    topic_axis,
+                    nlp,
+                    model,
+                    threshold=0.0,
+                )
             )
 
             # Save both dictionaries to one file
@@ -158,7 +164,7 @@ def main():
         # NEW: boxplot
         print(f"creating {topic} topic scores by year boxplot...")
         # tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
-        tm.conf_boxplot(f"{topic} Positive Proportion", yearly_topic_proportions, show_trend=True, trend_method="mean",)
+        # tm.conf_boxplot(f"{topic} Positive Proportion", yearly_topic_proportions, show_trend=True, trend_method="mean",)
 
         print(f"saved {topic} topic scores by year plot!")
 
@@ -167,8 +173,6 @@ def main():
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2007, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2012, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2015, "cornflowerblue")
-
-
 
         print(f"creating {topic} histogram comparison plot...")
         # Creating histogram comparison plots comparing the distribution of sentence-level topic scores between a specified topic speech and specified neutral speech.
@@ -184,7 +188,8 @@ def main():
         #    "coral",
         # )
         print("tyler the goat")
-        tm.the_goat_tyler(topic, yearly_topic_scores)
+        # tm.the_goat_tyler(topic, yearly_topic_scores)
+        tm.save_topic_score_by_year_plot(topic, yearly_topic_scores)
 
     print("script finished.")
 
