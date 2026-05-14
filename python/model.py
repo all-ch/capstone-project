@@ -51,6 +51,34 @@ def compute_speech_topic_score(
     ).flatten()
     return float(np.quantile(sent_scores, q))
 
+def compute_speech_topic_proportion(
+    sentence_embeddings: np.ndarray | Tensor,
+    topic_vector: np.ndarray | Tensor,
+    threshold: float = 0.0,
+) -> float:
+    """
+    Computes the proportion of sentences in a speech that are above a topic threshold.
+
+    For religion:
+    - score > 0 means the sentence is more religious than neutral
+    - score <= 0 means the sentence is neutral/non-religious based on this axis
+
+    Args:
+        sentence_embeddings: Sentence embeddings for one speech.
+        topic_vector: Topic axis vector.
+        threshold: Cutoff for counting a sentence as topic-positive. Default is 0.
+
+    Returns:
+        float: Proportion of sentences above the threshold.
+    """
+
+    sent_scores = cosine_similarity(
+        sentence_embeddings,
+        topic_vector.reshape(1, -1)
+    ).flatten()
+
+    return float(np.mean(sent_scores > threshold))
+
 
 def compute_yearly_topic_scores(
     conference_data: pd.DataFrame,
@@ -96,6 +124,51 @@ def compute_yearly_topic_scores(
         yearly_topic_scores[year] = topic_scores
         yearly_topic_avg_score[year] = np.mean(topic_scores)
     return yearly_topic_scores, yearly_topic_avg_score
+
+def compute_yearly_topic_proportions(
+    conference_data: pd.DataFrame,
+    topic_vector: np.ndarray | Tensor,
+    nlp: Language,
+    model: SentenceTransformer,
+    threshold: float = 0.0,
+) -> tuple[dict, dict]:
+    """
+    Computes the proportion of positive topic sentences for each speech,
+    then groups those proportions by year.
+
+    Returns:
+        yearly_topic_proportions:
+            {year: [speech_prop1, speech_prop2, ...]}
+
+        yearly_avg_proportion:
+            {year: average proportion across speeches in that year}
+    """
+
+    yearly_topic_proportions = {}
+    yearly_avg_proportion = {}
+
+    for year, group in conference_data.groupby("cyear"):
+        print(f"computing positive proportion for year {year}...", flush=True)
+
+        topic_proportions = (
+            group["speech"]
+            .apply(
+                lambda x: compute_speech_topic_proportion(
+                    embeddings.get_sent_embeds(
+                        embeddings.split_speech(x, nlp),
+                        model
+                    ),
+                    topic_vector,
+                    threshold=threshold,
+                )
+            )
+            .to_list()
+        )
+
+        yearly_topic_proportions[year] = topic_proportions
+        yearly_avg_proportion[year] = np.mean(topic_proportions)
+
+    return yearly_topic_proportions, yearly_avg_proportion
 
 
 def compute_sent_level_topic_score_dist(
