@@ -70,5 +70,5 @@ def save_pca_plot(
     labels = get_labels(topic, pos_vec, neg_vec, pos_embeds, neg_embeds)
     add_to_plot(pca, scores, labels)
     #plt.savefig(f"outputs/plots/{topic}_pca.png", dpi=300, bbox_inches="tight") # for og data
-    plt.savefig(f"outputs/plots/{topic}_pca.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"outputs/plots/PCAs/{topic}_pca.png", dpi=300, bbox_inches="tight")
     plt.close()

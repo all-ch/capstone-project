@@ -1,4 +1,16 @@
 # This script serves as the main entry point for the project. It orchestrates the loading of models and data, the computation of topic scores, and the generation of visualizations for conference speeches on various topics.
+# 
+# HOW TO RUN THIS SCRIPT IN VS CODE:
+#-----------------------
+# TODO: probably say how to git clone
+# 1. Open VS Code, go to File > Open Folder... , and select this projects' project folder.
+# 2. Open VSCode's integrated terminal by clicking Terminal > New Terminal, in the top menu bar.
+# 3. Install required packages by installing 'uv' (Python package installer) by pasting this into terminal:
+# -  pip install uv
+# -  Then, download and link all required packages by pasting:
+# - uv sync
+# 4. Execute this script by inputting:
+# - python main.py
 
 # Import necessary libraries and modules
 from sklearn.preprocessing import (
@@ -125,7 +137,7 @@ def main():
             update_scores = True
 
         if update_scores:
-            # NOTE: If wanting to change quantile, you're going to. need to recompute scores.
+            # NOTE: If wanting to change quantile, you're going to need to recompute scores.
             yearly_topic_scores, yearly_avg_score = tm.compute_yearly_topic_scores(
                 data, topic_axis, nlp, model, q=0.75
             )
@@ -167,32 +179,29 @@ def main():
 
         # NEW: boxplot
         print(f"creating {topic} topic scores by year boxplot...")
-        tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
+        tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean") # is also calling residual plot, b/c boxplot is calculating linear trend
         # tm.conf_boxplot(f"{topic} Positive Proportion", yearly_topic_proportions, show_trend=True, trend_method="mean",)
 
         print(f"saved {topic} topic scores by year plot!")
 
-        #
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 1999, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2007, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2012, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2015, "cornflowerblue")
 
-
-
         print(f"creating {topic} histogram comparison plot...")
         # Creating histogram comparison plots comparing the distribution of sentence-level topic scores between a specified topic speech and specified neutral speech.
-        # tm.save_hist_comparison_plot(
-        #   topic,
-        #   "Neutral",
-        #    TOPICS[topic]["Speaker"],
-        #   TOPICS["Neutral"]["Speaker"],
-        #  topic_axis,
-        #  topic_embeds,
-        #  neutral_embeds,
-        #   "cornflowerblue",
-        #    "coral",
-        # )
+        tm.save_hist_comparison_plot(
+          topic,
+          "Neutral",
+           TOPICS[topic]["Speaker"],
+          TOPICS["Neutral"]["Speaker"],
+         topic_axis,
+         topic_embeds,
+         neutral_embeds,
+          "cornflowerblue",
+           "coral",
+        )
         print("tyler the goat")
         tm.the_goat_tyler(topic, yearly_topic_scores)
 

@@ -220,6 +220,7 @@ def save_topic_score_by_year_plot(topic: str, yearly_scores: dict) -> None:
     # Adding a horizontal line at y=0 to indicate the neutral threshold and a trend line to show overall direction
     ax.axhline(0, color="red", linestyle="--", linewidth=1, label="Neutral Threshold")
     m, b = np.polyfit(years, scores, 1)
+
     ax.plot(
         years,
         m * years + b,
@@ -277,6 +278,9 @@ def conf_boxplot(
             pass  # TODO: more trend methods?
         if trend_method in ["median", "mean"]:
             m, b = np.polyfit(years, trend_values, 1)
+
+            #Quick residual plot
+            residual_scatter_plot(topic, yearly_scores, m, b)
             s, i, r, p, e = stats.linregress(years, trend_values)
             ax.plot(
                 years,
@@ -291,11 +295,12 @@ def conf_boxplot(
     ax.set_xlabel("Year")
     ax.set_xticklabels(years, rotation=45, fontsize=9)
     ax.set_ylabel(f"{topic} Topic Scores")
+    ax.set_ylim(-0.10, 0.40)
     ax.set_title(f"{topic} Topic Scores by Year")
     ax.legend()
     # plt.savefig(f"outputs/plots/boxplot_yearly_{topic}_scores.png", dpi=300, bbox_inches="tight") # for og data
     plt.savefig(
-        f"outputs/plots/boxplot_yearly_{topic}_scores_quantile.png",
+        f"outputs/plots/Boxplots/{topic}_yearly_scores.png",
         dpi=300,
         bbox_inches="tight",
     )
@@ -357,7 +362,7 @@ def conf_violin_plot_yearly(
         print(f"Year {target_year} not found in yearly_scores.")
         return
 
-    year_data = yearly_scores[target_year]  #
+    year_data = yearly_scores[target_year]
 
     # 2. Setup the plot
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -382,7 +387,7 @@ def conf_violin_plot_yearly(
     ax.grid(True, alpha=0.3)
 
     plt.savefig(
-        f"outputs/plots/{topic}_{target_year}_yearly_violin.png",
+        f"outputs/plots/SingleViolinplots/{topic}_{target_year}_yearly_violin.png",
         dpi=300,
         bbox_inches="tight",
     )
@@ -427,7 +432,7 @@ def save_hist_comparison_plot(
     )
     plt.tight_layout()
     plt.savefig(
-        f"outputs/plots/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight"
+        f"outputs/plots/Histograms/{topic}_hist_comparison.png", dpi=300, bbox_inches="tight"
     )
 
     plt.close()
@@ -447,17 +452,55 @@ def the_goat_tyler(
 
     # Creating the boxplot
     ax.violinplot(scores, positions=years, showmedians=True)
-
     ax.set_xlabel("Year")
+    ax.set_xticks(years)
     ax.set_xticklabels(years, rotation=45, fontsize=9)
     ax.set_ylabel(f"{topic} Topic Scores")
     ax.set_title(f"{topic} Topic Scores by Year")
-    ax.legend()
-    # plt.savefig(f"outputs/plots/boxplot_yearly_{topic}_scores.png", dpi=300, bbox_inches="tight") # for og data
     plt.savefig(
-        f"outputs/plots/violinplot_yearly_{topic}_scores_quantile.png",
+        f"outputs/plots/Violinplots/{topic}yearly_scores.png",
         dpi=300,
         bbox_inches="tight",
     )
 
     plt.close()
+
+def residual_scatter_plot(topic: str,
+    yearly_scores: dict,
+    m: float,
+    b: float,) -> None:
+    """
+    Quick makeshift residual scatter plot
+
+    Args: 
+        yearly_scores (dict): A dictionary mapping years to lists of topic scores for that year.
+        m (float): Slope of the fitted regression line calculated in conf_boxplot.
+        b (float): Intercept of the fitted regression line calculated in conf_boxplot.
+    Returns:
+        None: The function creates and saves the residual plot and saves it to outputs/plots folder.
+    """
+    years = np.array(list(yearly_scores.keys()))
+    all_years = []
+    residuals = []
+    _, ax = plt.subplots(figsize=(8, 6))
+
+    for year in years:
+        predicted_value = m * year + b
+        actual_values = np.array(yearly_scores[year])
+
+        yearly_residuals = actual_values - predicted_value
+        
+        all_years.extend([year] * len(yearly_residuals))
+        residuals.extend(yearly_residuals)
+
+    sns.regplot(x=all_years, y=residuals, lowess=True, line_kws=dict(color="r"), ax=ax)
+    ax.axhline(0, color='black', linestyle = '--', alpha = 0.5)
+    ax.set_title(f"{topic} Residuals Over Time")
+
+    plt.savefig(
+        f"outputs/plots/Residuals/{topic}_yearly_residuals.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close()
+        
