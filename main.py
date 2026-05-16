@@ -1,5 +1,4 @@
 # This script serves as the main entry point for the project. It orchestrates the loading of models and data, the computation of topic scores, and the generation of visualizations for conference speeches on various topics.
-import matplotlib.pyplot as plt
 
 # Import necessary libraries and modules
 from sklearn.preprocessing import (
@@ -12,10 +11,9 @@ from python import (
 from python import (
     pca,
 )  # Custom module for performing Principal Component Analysis and generating PCA plots
-from sklearn.linear_model import LinearRegression
+
 import pickle  # for saving and loading computed scores
 import os  # for checking if cache files exist
-import numpy as np
 
 # Sentence embedding and natural language processing models
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"  # https://huggingface.co/sentence-transformers/all-mpnet-base-v2, a pre-trained model for generating sentence embeddings
@@ -34,11 +32,19 @@ NEW_DATA_DIR = "data/processed/new_speeches.csv"
 RELIGION_POS_DIR = "data/anchors/religion_pos_sentences.csv"
 RELIGION_NEG_DIR = "data/anchors/religion_neg_sentences.csv"
 
-POLITICS_POS_DIR = "data/anchors/politics_pos_sentences.csv"
-POLITICS_NEG_DIR = "data/anchors/politics_neg_sentences.csv"
+# POLITICS_POS_DIR = "data/anchors/politics_pos_sentences.csv"
+# POLITICS_NEG_DIR = "data/anchors/politics_neg_sentences.csv"
 
-SCIENCE_POS_DIR = "data/anchors/science_pos_sentences.csv"
-SCIENCE_NEG_DIR = "data/anchors/science_neg_sentences.csv"
+# NOTE: kind of more like rigorous vs poor political justification 
+POLITICS_POS_DIR = "data/anchors/political_justification_pos_sentences.csv"
+POLITICS_NEG_DIR = "data/anchors/political_justification_neg_sentences.csv"
+
+# SCIENCE_POS_DIR = "data/anchors/science_pos_sentences.csv"
+# SCIENCE_NEG_DIR = "data/anchors/science_neg_sentences.csv"
+
+# NOTE: examples of strong versus poor reasoning/ logical fallacies
+SCIENCE_POS_DIR = "data/anchors/scientific_justification_pos_sentences.csv" 
+SCIENCE_NEG_DIR = "data/anchors/scientific_justification_neg_sentences.csv"
 
 # Preset speakers and years for data analysis and visualization
 RELIGION_SPKR, RELIGION_YEAR = "Michael Gold ", 1999
@@ -124,19 +130,15 @@ def main():
                 data, topic_axis, nlp, model, q=0.75
             )
 
-            yearly_topic_proportions, yearly_avg_proportion = (
-                tm.compute_yearly_topic_proportions(
-                    data,
-                    topic_axis,
-                    nlp,
-                    model,
-                    threshold=0.0,
-                )
-            )
+            # Currently not using proportions
+            # yearly_topic_proportions, yearly_avg_proportion = tm.compute_yearly_topic_proportions(
+            #     data, topic_axis, nlp, model, threshold=0.0,
+            # )
 
             # Save both dictionaries to one file
             with open(cache_path, "wb") as f:
                 pickle.dump((yearly_topic_scores, yearly_avg_score), f)
+
             print(f"Scores saved to {cache_path}")
 
         else:
@@ -158,16 +160,14 @@ def main():
 
         print(f"creating {topic} pca plot...")
         # PCA plot are generated to visualize distribution of sentence embeddings for topic speech in relation to topic axis.
-        # pca.save_pca_plot(
-        #    topic, scalar, 2, pos_vec, neg_vec, topic_axis, topic_embeds, neutral_embeds
-        # )
+        pca.save_pca_plot(
+           topic, scalar, 2, pos_vec, neg_vec, topic_axis, topic_embeds, neutral_embeds
+        )
         print(f"saved {topic} pca plot!")
 
         # NEW: boxplot
         print(f"creating {topic} topic scores by year boxplot...")
-        tm.conf_boxplot(
-            topic, yearly_topic_scores, show_trend=True, trend_method="mean"
-        )
+        tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
         # tm.conf_boxplot(f"{topic} Positive Proportion", yearly_topic_proportions, show_trend=True, trend_method="mean",)
 
         print(f"saved {topic} topic scores by year plot!")
@@ -177,6 +177,8 @@ def main():
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2007, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2012, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2015, "cornflowerblue")
+
+
 
         print(f"creating {topic} histogram comparison plot...")
         # Creating histogram comparison plots comparing the distribution of sentence-level topic scores between a specified topic speech and specified neutral speech.
@@ -192,8 +194,8 @@ def main():
         #    "coral",
         # )
         print("tyler the goat")
-        # tm.the_goat_tyler(topic, yearly_topic_scores)
-        # tm.save_topic_score_by_year_plot(topic, yearly_topic_scores)
+        tm.the_goat_tyler(topic, yearly_topic_scores)
+
     print("script finished.")
 
 

@@ -27,7 +27,7 @@ def get_anchor_embeds(location: str | Path, model: SentenceTransformer) -> Tenso
     Returns:
         Tensor | np.ndarray: A tensor or numpy array containing the embeddings of the sentences read from the CSV file.
     """
-    return model.encode(pd.read_csv(location, header=None)[0].tolist())
+    return model.encode(pd.read_csv(location, header=None, sep="\t")[0].tolist())
 
 
 def get_sent_embeds(sent: list[str], model: SentenceTransformer) -> Tensor | np.ndarray:
