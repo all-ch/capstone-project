@@ -437,6 +437,84 @@ def save_hist_comparison_plot(
 
     plt.close()
 
+def conf_violinplot(
+    topic: str,
+    yearly_scores: dict,
+    show_trend: bool = True,
+    trend_method: str = "median",
+) -> None:
+    """
+    Creates a violin plot of topic scores by year for a given topic.
+
+    This function visualizes the distribution of topic scores for each year,
+    with an optional trend line to show overall direction.
+
+    Args:
+        topic (str): The name of the topic being plotted, used for labeling the axes.
+        yearly_scores (dict): A dictionary mapping years to lists of topic scores for that year.
+        show_trend (bool): Whether to include a trend line in the plot. Default is True.
+        trend_method (str): The method to use for calculating the trend line, either "median" or "mean". Default is "median".
+
+    Returns:
+        None: The function saves the plot to a file and does not return any value.
+    """
+
+    # Setting up the plot
+    years = np.array(list(yearly_scores.keys()))
+    scores = [yearly_scores[year] for year in years]
+    _, ax = plt.subplots()
+
+    # Creating the violin plot
+    ax.violinplot(
+        scores,
+        positions=years,
+        widths=1.2,
+        showmeans=False,
+        showmedians=False,
+        showextrema=False,
+    )
+
+    if show_trend:
+        if trend_method == "median":
+            trend_values = [np.median(yearly_scores[year]) for year in years]
+        elif trend_method == "mean":
+            trend_values = [np.mean(yearly_scores[year]) for year in years]
+        else:
+            pass  # TODO: more trend methods?
+
+        if trend_method in ["median", "mean"]:
+            m, b = np.polyfit(years, trend_values, 1)
+
+            # Quick residual plot
+            residual_scatter_plot(topic, yearly_scores, m, b)
+
+            s, i, r, p, e = stats.linregress(years, trend_values)
+
+            ax.plot(
+                years,
+                m * years + b,
+                color="blue",
+                linestyle="--",
+                linewidth=1,
+                label=f"{trend_method.capitalize()} Trend (Slope:{s:.4f}, p-value:{p:.4f}, se:{e:.4f})",
+            )
+
+    # Finalizing the plot
+    ax.set_xlabel("Year")
+    ax.set_xticks(years)
+    ax.set_xticklabels(years, rotation=45, fontsize=9)
+    ax.set_ylabel(f"{topic} Topic Scores")
+    ax.set_ylim(-0.10, 0.40)
+    ax.set_title(f"{topic} Topic Scores by Year")
+    ax.legend()
+
+    plt.savefig(
+        f"outputs/plots/Violinplots/{topic}_yearly_scores.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    plt.close()
 
 def the_goat_tyler(
     topic: str,

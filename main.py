@@ -182,8 +182,11 @@ def main():
         tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean") # is also calling residual plot, b/c boxplot is calculating linear trend
         # tm.conf_boxplot(f"{topic} Positive Proportion", yearly_topic_proportions, show_trend=True, trend_method="mean",)
 
-        print(f"saved {topic} topic scores by year plot!")
+        # NEW: violinplot
+        print(f"creating {topic} topic scores by year violinplot...")
+        tm.conf_violinplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
 
+        print(f"saved {topic} topic scores by year plot!")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 1999, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2007, "cornflowerblue")
         # tm.conf_violin_plot_yearly(topic, yearly_topic_scores, 2012, "cornflowerblue")
