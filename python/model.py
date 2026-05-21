@@ -468,7 +468,7 @@ def conf_violinplot(
     ax.violinplot(
         scores,
         positions=years,
-        widths=1.2,
+        widths=1,
         showmeans=False,
         showmedians=False,
         showextrema=False,
@@ -496,7 +496,7 @@ def conf_violinplot(
                 color="blue",
                 linestyle="--",
                 linewidth=1,
-                label=f"{trend_method.capitalize()} Trend (Slope:{s:.4f}, p-value:{p:.4f}, se:{e:.4f})",
+                label=f"{trend_method.capitalize()} Trend",
             )
 
     # Finalizing the plot
@@ -504,7 +504,6 @@ def conf_violinplot(
     ax.set_xticks(years)
     ax.set_xticklabels(years, rotation=45, fontsize=9)
     ax.set_ylabel(f"{topic} Topic Scores")
-    ax.set_ylim(-0.10, 0.40)
     ax.set_title(f"{topic} Topic Scores by Year")
     ax.legend()
 

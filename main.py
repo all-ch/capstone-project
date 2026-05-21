@@ -206,7 +206,7 @@ def main():
            "coral",
         )
         print("tyler the goat")
-        tm.the_goat_tyler(topic, yearly_topic_scores)
+        #tm.the_goat_tyler(topic, yearly_topic_scores)
 
     print("script finished.")
 
