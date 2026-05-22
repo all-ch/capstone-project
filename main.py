@@ -1,8 +1,8 @@
 # This script serves as the main entry point for the project. It orchestrates the loading of models and data, the computation of topic scores, and the generation of visualizations for conference speeches on various topics.
-# 
+#
 # HOW TO RUN THIS SCRIPT IN VS CODE:
-#-----------------------
-# 
+# -----------------------
+#
 # 1. Open VS Code, go to File > Open Folder... , and select this projects' project folder.
 # 2. Open VSCode's integrated terminal by clicking Terminal > New Terminal, in the top menu bar.
 # 3. Install required packages by installing 'uv' (Python package installer) by pasting this into terminal:
@@ -52,7 +52,7 @@ SCIENCE_NEG_DIR = "data/anchors/science_neg_sentences.csv"
 # NOTE: These anchor sentences are statistically significant, but are measuring poor versus rigorous political/scientific justtification, assumes each sentence can be measured on a spectrum of justification quality, 0 does not mean absence of political or scientific content.
 # POLITICS_POS_DIR = "data/anchors/political_justification_pos_sentences.csv"
 # POLITICS_NEG_DIR = "data/anchors/political_justification_neg_sentences.csv"
-# SCIENCE_POS_DIR = "data/anchors/scientific_justification_pos_sentences.csv" 
+# SCIENCE_POS_DIR = "data/anchors/scientific_justification_pos_sentences.csv"
 # SCIENCE_NEG_DIR = "data/anchors/scientific_justification_neg_sentences.csv"
 
 # Preset speakers and years for data analysis and visualization
@@ -95,35 +95,28 @@ TOPICS = {
 }
 
 
-# Main function to orchestrate the loading of models and data, computation of topic scores, and generation of visualizations for conference speeches on various topics.
 def main():
 
-    # Loading necessary models and data for the analysis
     print("loading all models and data...")
     model, data, nlp = embeddings.init_models(
         EMBEDDINGS_MODEL,
-        NEW_DATA_DIR,  # DATA_DIR,
+        NEW_DATA_DIR,
         NLP_MODEL,
     )
     scalar = StandardScaler()
 
-    # Loop through each topic (except "Neutral") to compute topic scores and generate visualizations
     for topic in TOPICS:
         if topic == "Neutral":
             continue
 
         print(f"creating {topic} vectors...")
-        # The positive and negative anchor embeddings are initialized based on the specified CSV files for each topic. The topic axis vector is computed as the difference between the average positive embedding and the average negative embedding,
-        #  which defines the direction in the embedding space that represents the topic of interest.
         pos_vec, neg_vec, topic_axis = embeddings.init_vec(
             TOPICS[topic]["Positive"], TOPICS[topic]["Negative"], model
         )
 
-        # Cache system that's going to ask for each topic if you want to recompute scores
         cache_path = f"data/processed/{topic}_scores.pkl"
         update_scores = False
 
-        # Check if the file exists first; if not, we HAVE to calculate
         if os.path.exists(cache_path):
             update_scores = input(
                 f"{topic} Cache found. Recompute scores? (Y/N): "
@@ -134,12 +127,10 @@ def main():
             update_scores = True
 
         if update_scores:
-            # NOTE: If wanting to change quantile, you're going to need to recompute scores.
             yearly_topic_scores, yearly_avg_score = tm.compute_yearly_topic_scores(
                 data, topic_axis, nlp, model, q=0.75
             )
 
-            # Save both dictionaries to one file for each topic
             with open(cache_path, "wb") as f:
                 pickle.dump((yearly_topic_scores, yearly_avg_score), f)
 
@@ -151,7 +142,6 @@ def main():
                 yearly_topic_scores, yearly_avg_score = pickle.load(f)
 
         print(f"Loading {topic} example speech embeddings...")
-        # The embeddings for the topic speech and the neutral speech are initialized based on the specified speakers and years for each topic. These embeddings will be used for generating visualizations and computing topic scores.
         topic_embeds, neutral_embeds = embeddings.init_speech_embeds(
             nlp,
             model,
@@ -162,37 +152,42 @@ def main():
             TOPICS["Neutral"]["Year"],
         )
 
-
-        # PCA plot are generated to visualize distribution of sentence embeddings for topic speech in relation to topic axis.
         pca.save_pca_plot(
-           topic, scalar, 2, pos_vec, neg_vec, topic_axis, topic_embeds, neutral_embeds
+            topic,
+            scalar,
+            2,
+            pos_vec,
+            neg_vec,
+            (pos_vec + neg_vec) / 2,
+            topic_embeds,
+            neutral_embeds,
         )
         print(f"Created {topic} pca plot.")
 
-
-        tm.conf_boxplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean") # is also calling residual plot, b/c boxplot is calculating linear trend
+        tm.conf_boxplot(
+            topic, yearly_topic_scores, show_trend=True, trend_method="mean"
+        )
         print(f"Created {topic} topic scores by year boxplot.")
 
-        tm.conf_violinplot(topic, yearly_topic_scores, show_trend=True, trend_method="mean")
+        tm.conf_violinplot(
+            topic, yearly_topic_scores, show_trend=True, trend_method="mean"
+        )
         print(f"Created {topic} topic scores by year violinplot!")
 
-        # Creating histogram comparison plots comparing the distribution of sentence-level topic scores between a specified topic speech and specified neutral speech.
         tm.save_hist_comparison_plot(
-          topic,
-          "Neutral",
-           TOPICS[topic]["Speaker"],
-          TOPICS["Neutral"]["Speaker"],
-         topic_axis,
-         topic_embeds,
-         neutral_embeds,
-          "cornflowerblue",
-           "coral",
+            topic,
+            "Neutral",
+            TOPICS[topic]["Speaker"],
+            TOPICS["Neutral"]["Speaker"],
+            topic_axis,
+            topic_embeds,
+            neutral_embeds,
+            "cornflowerblue",
+            "coral",
         )
         print(f"Created {topic} histogram comparison plot.")
     print("script finished.")
 
 
-# Running this script will execute the main function, which will load the necessary models and data, compute topic scores for the specified topics, and generate visualizations for each topic.
-#  The generated visualizations will be saved to the appropriate directories for later review and analysis.
 if __name__ == "__main__":
     main()
