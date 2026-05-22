@@ -1,23 +1,11 @@
-# This module contains functions for generating and manipulating sentence embeddings.
-
-# Natural Language Processing and Text Analysis for Conference Speeches
-from sentence_transformers import (
-    SentenceTransformer,
-)  # For converting sentences into numerical embeddings
-from spacy.language import (
-    Language,
-)  # For natural language processing tasks such as sentence tokenization
-import spacy  # For natural language processing tasks such as sentence tokenization
-
-# Path handling
+from sentence_transformers import SentenceTransformer
+from spacy.language import Language
+import spacy
 from pathlib import Path
+from torch import Tensor
+import pandas as pd
+import numpy as np
 
-# Mathematical and data manipulation libraries
-from torch import Tensor  # For handling numerical data
-import pandas as pd  # for working with dataframes
-import numpy as np  # For numerical operations
-
-# Define the root directory for data files
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
