@@ -71,7 +71,8 @@ def init_vec(
     neg_df = ROOT_DIR / neg_loc
     pos_embeds = get_anchor_embeds(pos_df, model)
     neg_embeds = get_anchor_embeds(neg_df, model)
-    return [pos_embeds, neg_embeds, get_anchor_axis(pos_embeds, neg_embeds)]
+    axis_embed = (avg_vec(pos_embeds) + avg_vec(neg_embeds)) / 2
+    return [pos_embeds, neg_embeds, get_anchor_axis(pos_embeds, neg_embeds), axis_embed]
 
 
 def init_speech_embeds(

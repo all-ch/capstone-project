@@ -13,17 +13,19 @@ import seaborn as sns
 
 def compute_speech_topic_score(
     sentence_embeddings: np.ndarray | Tensor,
+    topic_axis: np.ndarray | Tensor,
     topic_vector: np.ndarray | Tensor,
     q: float = 0.75,
 ) -> float:
     sent_scores = cosine_similarity(
-        sentence_embeddings, topic_vector.reshape(1, -1)
+        sentence_embeddings - topic_vector, topic_axis.reshape(1, -1)
     ).flatten()
     return float(np.quantile(sent_scores, q))
 
 
 def compute_yearly_topic_scores(
     conference_data: pd.DataFrame,
+    topic_axis: np.ndarray | Tensor,
     topic_vector: np.ndarray | Tensor,
     nlp: Language,
     model: SentenceTransformer,
@@ -36,8 +38,9 @@ def compute_yearly_topic_scores(
             group["speech"]
             .apply(
                 lambda x: compute_speech_topic_score(
-                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
-                    topic_vector,
+                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model)
+                    - topic_vector,
+                    topic_axis,
                     q=q,
                 )
             )
@@ -49,12 +52,14 @@ def compute_yearly_topic_scores(
 
 
 def compute_sent_level_topic_score_dist(
-    speech_embeddings: Tensor | np.ndarray, topic_vector: Tensor | np.ndarray
+    speech_embeddings: Tensor | np.ndarray,
+    topic_axis: Tensor | np.ndarray,
+    topic_vector: Tensor | np.ndarray,
 ) -> list:
     sent_scores = []
     for sent_embedding in speech_embeddings:
         sent_topic_score = cosine_similarity(
-            sent_embedding.reshape(1, -1), topic_vector.reshape(1, -1)
+            (sent_embedding - topic_vector).reshape(1, -1), topic_axis.reshape(1, -1)
         )[0][0]
         sent_scores.append(sent_topic_score)
     return sent_scores
@@ -109,7 +114,7 @@ def conf_boxplot(
         elif trend_method == "mean":
             trend_values = [np.mean(yearly_scores[year]) for year in years]
         else:
-            pass  # TODO: more trend methods?
+            pass
         if trend_method in ["median", "mean"]:
             m, b = np.polyfit(years, trend_values, 1)
 
@@ -146,10 +151,11 @@ def conf_hist_plot(
     speaker: str,
     ax: axes.Axes,
     axis: Tensor | np.ndarray,
+    vec: Tensor | np.ndarray,
     embeds: Tensor | np.ndarray,
     color: str,
 ) -> None:
-    score_dist = compute_sent_level_topic_score_dist(embeds, axis)
+    score_dist = compute_sent_level_topic_score_dist(embeds, axis, vec)
     ax.hist(score_dist, bins=30, alpha=0.7, color=color, edgecolor="black")
     ax.set_title(f"{title} Speech By {speaker}\nSentence-Level {topic} Scores")
     ax.set_xlabel(f"{topic} Topic Score")
@@ -174,7 +180,7 @@ def conf_violin_plot_yearly(
 
     year_data = yearly_scores[target_year]
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    _, ax = plt.subplots(figsize=(8, 6))
 
     sns.violinplot(x=year_data, ax=ax, color=color, inner="quartile")
 
@@ -205,6 +211,7 @@ def save_hist_comparison_plot(
     topic_spkr: str,
     neutral_spkr: str,
     axis: Tensor | np.ndarray,
+    vec: Tensor | np.ndarray,
     topic_embeds: Tensor | np.ndarray,
     neutral_embeds: Tensor | np.ndarray,
     topic_color: str,
@@ -212,9 +219,9 @@ def save_hist_comparison_plot(
 ) -> None:
     _, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    conf_hist_plot(topic, topic, topic_spkr, ax1, axis, topic_embeds, topic_color)
+    conf_hist_plot(topic, topic, topic_spkr, ax1, axis, vec, topic_embeds, topic_color)
     conf_hist_plot(
-        topic, neutral, neutral_spkr, ax2, axis, neutral_embeds, neutral_color
+        topic, neutral, neutral_spkr, ax2, axis, vec, neutral_embeds, neutral_color
     )
     plt.tight_layout()
     plt.savefig(
@@ -251,7 +258,7 @@ def conf_violinplot(
         elif trend_method == "mean":
             trend_values = [np.mean(yearly_scores[year]) for year in years]
         else:
-            pass  # TODO: more trend methods?
+            pass
 
         if trend_method in ["median", "mean"]:
             m, b = np.polyfit(years, trend_values, 1)
@@ -290,7 +297,6 @@ def the_goat_tyler(
     topic: str,
     yearly_scores: dict,
 ) -> None:
-
     years = np.array(list(yearly_scores.keys()))
     scores = [yearly_scores[year] for year in years]
     _, ax = plt.subplots()

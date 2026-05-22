@@ -110,7 +110,7 @@ def main():
             continue
 
         print(f"creating {topic} vectors...")
-        pos_vec, neg_vec, topic_axis = embeddings.init_vec(
+        pos_vec, neg_vec, topic_axis, topic_vec = embeddings.init_vec(
             TOPICS[topic]["Positive"], TOPICS[topic]["Negative"], model
         )
 
@@ -128,7 +128,7 @@ def main():
 
         if update_scores:
             yearly_topic_scores, yearly_avg_score = tm.compute_yearly_topic_scores(
-                data, topic_axis, nlp, model, q=0.75
+                data, topic_axis, topic_vec, nlp, model, q=0.75
             )
 
             with open(cache_path, "wb") as f:
@@ -158,7 +158,7 @@ def main():
             2,
             pos_vec,
             neg_vec,
-            (pos_vec + neg_vec) / 2,
+            topic_vec,
             topic_embeds,
             neutral_embeds,
         )
@@ -180,6 +180,7 @@ def main():
             TOPICS[topic]["Speaker"],
             TOPICS["Neutral"]["Speaker"],
             topic_axis,
+            topic_vec,
             topic_embeds,
             neutral_embeds,
             "cornflowerblue",
