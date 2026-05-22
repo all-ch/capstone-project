@@ -38,9 +38,9 @@ def compute_yearly_topic_scores(
             group["speech"]
             .apply(
                 lambda x: compute_speech_topic_score(
-                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model)
-                    - topic_vector,
+                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
                     topic_axis,
+                    topic_vector,
                     q=q,
                 )
             )
