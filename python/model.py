@@ -2,7 +2,7 @@ from sentence_transformers import SentenceTransformer
 from spacy.language import Language
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-from torch import Tensor
+from torch import Tensor, threshold
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.axes as axes
@@ -16,11 +16,12 @@ def compute_speech_topic_score(
     topic_axis: np.ndarray | Tensor,
     topic_vector: np.ndarray | Tensor,
     q: float = 0.75,
-) -> float:
+) -> np.ndarray | Tensor:
     sent_scores = cosine_similarity(
         sentence_embeddings - topic_vector, topic_axis.reshape(1, -1)
     ).flatten()
-    return float(np.quantile(sent_scores, q))
+    cutoff = np.quantile(sent_scores, q)
+    return sent_scores[sent_scores >= cutoff]
 
 
 def compute_yearly_topic_scores(
@@ -34,17 +35,13 @@ def compute_yearly_topic_scores(
     yearly_topic_avg_score = {}
     yearly_topic_scores = {}
     for year, group in conference_data.groupby("cyear"):
-        topic_scores = (
-            group["speech"]
-            .apply(
-                lambda x: compute_speech_topic_score(
-                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
-                    topic_axis,
-                    topic_vector,
-                    q=q,
-                )
+        topic_scores = group["speech"].apply(
+            lambda x: compute_speech_topic_score(
+                embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
+                topic_axis,
+                topic_vector,
+                q=q,
             )
-            .to_list()
         )
         yearly_topic_scores[year] = topic_scores
         yearly_topic_avg_score[year] = np.mean(topic_scores)
