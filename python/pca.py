@@ -50,9 +50,13 @@ def add_to_plot(pca: PCA, scores: np.ndarray, labels: np.ndarray) -> None:
         palette="Set2",
         edgecolor="black",
     )
-    plt.title("PCA Comparison", fontsize=15)
-    plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.1%} variance)", fontsize=12)
-    plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%} variance)", fontsize=12)
+
+    plt.title("PCA Comparison", fontsize=25)
+    plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.1%} variance)", fontsize=25)
+    plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%} variance)", fontsize=25)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.legend(fontsize=13, title_fontsize=15)
     plt.grid(True, linestyle="--", alpha=0.6)
 
 

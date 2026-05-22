@@ -430,12 +430,13 @@ def conf_violinplot(
             )
 
     # Finalizing the plot
-    ax.set_xlabel("Year")
+    ax.set_xlabel("Year", fontsize=20)
+    ax.set_ylabel(f"{topic} Topic Scores", fontsize=20)
+    ax.set_title(f"{topic} Topic Scores by Year", fontsize=20)
     ax.set_xticks(years)
-    ax.set_xticklabels(years, rotation=45, fontsize=9)
-    ax.set_ylabel(f"{topic} Topic Scores")
-    ax.set_title(f"{topic} Topic Scores by Year")
-    ax.legend()
+    ax.set_xticklabels(years, rotation=45, fontsize=16)
+    ax.tick_params(axis="y", labelsize=16)
+    ax.legend(fontsize=16)
 
     plt.savefig(
         f"outputs/plots/Violinplots/{topic}_yearly_scores.png",
