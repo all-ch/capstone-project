@@ -2,7 +2,7 @@ from sentence_transformers import SentenceTransformer
 from spacy.language import Language
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-from torch import Tensor, threshold
+from torch import Tensor
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.axes as axes
@@ -35,14 +35,19 @@ def compute_yearly_topic_scores(
     yearly_topic_avg_score = {}
     yearly_topic_scores = {}
     for year, group in conference_data.groupby("cyear"):
-        topic_scores = group["speech"].apply(
-            lambda x: compute_speech_topic_score(
-                embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
-                topic_axis,
-                topic_vector,
-                q=q,
+        topic_scores = (
+            group["speech"]
+            .apply(
+                lambda x: compute_speech_topic_score(
+                    embeddings.get_sent_embeds(embeddings.split_speech(x, nlp), model),
+                    topic_axis,
+                    topic_vector,
+                    q=q,
+                )
             )
+            .to_list()
         )
+        topic_scores = np.concatenate(topic_scores)
         yearly_topic_scores[year] = topic_scores
         yearly_topic_avg_score[year] = np.mean(topic_scores)
     return yearly_topic_scores, yearly_topic_avg_score
