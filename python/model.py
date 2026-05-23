@@ -18,7 +18,7 @@ def compute_speech_topic_score(
     q: float = 0.75,
 ) -> np.ndarray | Tensor:
     sent_scores = cosine_similarity(
-        sentence_embeddings - topic_vector, topic_axis.reshape(1, -1)
+        sentence_embeddings - topic_vector.reshape(1, -1), topic_axis.reshape(1, -1)
     ).flatten()
     cutoff = np.quantile(sent_scores, q)
     return sent_scores[sent_scores >= cutoff]
@@ -61,8 +61,9 @@ def compute_sent_level_topic_score_dist(
     sent_scores = []
     for sent_embedding in speech_embeddings:
         sent_topic_score = cosine_similarity(
-            (sent_embedding - topic_vector).reshape(1, -1), topic_axis.reshape(1, -1)
-        )[0][0]
+            (sent_embedding.reshape(1, -1) - topic_vector.reshape(1, -1)),
+            topic_axis.reshape(1, -1),
+        ).flatten()
         sent_scores.append(sent_topic_score)
     return sent_scores
 
@@ -184,9 +185,9 @@ def conf_violin_plot_yearly(
 
     _, ax = plt.subplots(figsize=(8, 6))
 
-    sns.violinplot(x=year_data, ax=ax, color=color, inner="quartile")
+    sns.violinplot(x=year_data, ax=ax, color=color, inner="quart")
 
-    q75 = np.quantile(year_data, 0.75)  #
+    q75 = np.quantile(year_data, 0.75)
     ax.axvline(
         float(q75),
         color="red",

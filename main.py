@@ -1,45 +1,20 @@
-# This script serves as the main entry point for the project. It orchestrates the loading of models and data, the computation of topic scores, and the generation of visualizations for conference speeches on various topics.
-#
-# HOW TO RUN THIS SCRIPT IN VS CODE:
-# -----------------------
-#
-# 1. Open VS Code, go to File > Open Folder... , and select this projects' project folder.
-# 2. Open VSCode's integrated terminal by clicking Terminal > New Terminal, in the top menu bar.
-# 3. Install required packages by installing 'uv' (Python package installer) by pasting this into terminal:
-# -  pip install uv
-# -  Then, download and link all required packages by pasting:
-# - uv sync
-# 4. Execute this script by inputting:
-# - python main.py
+from sklearn.preprocessing import StandardScaler
+from python import embeddings
+from python import model as tm
+from python import pca
+import pickle
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.mixture import GaussianMixture
+from scipy.stats import norm
 
-# Import necessary libraries and modules
-from sklearn.preprocessing import (
-    StandardScaler,
-)  # For standardizing features by removing the mean and scaling to unit variance
-from python import embeddings  # Custom module for handling sentence embeddings
-from python import (
-    model as tm,
-)  # Custom module for computing topic scores and generating visualizations
-from python import (
-    pca,
-)  # Custom module for performing Principal Component Analysis and generating PCA plots
+EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
+NLP_MODEL = "en_core_web_sm"
 
-import pickle  # for saving and loading computed scores
-import os  # for checking if cache files exist
-
-# Sentence embedding and natural language processing models
-EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"  # https://huggingface.co/sentence-transformers/all-mpnet-base-v2, a pre-trained model for generating sentence embeddings
-NLP_MODEL = "en_core_web_sm"  # English model for natural language processing tasks such as sentence tokenization
-
-# Conference speech data
 DATA_DIR = "data/processed/speeches.csv"
 NEW_DATA_DIR = "data/processed/new_speeches.csv"
 
-# Anchor sentences for each topic, used to define the topic axes in the embedding space
-# NOTE 1: Sentences were generated using ChatGPT, so they may not be perfect representations, and should be checked for accuracy and relevance to the topic.
-#  AI generated sentences should be further reviewed and validated.
-# NOTE 2: If wanting to add more anchors, create a new CSV file with the same format as existing anchor files (no header, sentences in the first column), then
-# add the file path to the appropriate topic in the TOPICS dictionary below, and ensure that the file is located in the correct directory.
 RELIGION_POS_DIR = "data/anchors/religion_pos_sentences.csv"
 RELIGION_NEG_DIR = "data/anchors/religion_neg_sentences.csv"
 
@@ -55,20 +30,12 @@ SCIENCE_NEG_DIR = "data/anchors/science_neg_sentences.csv"
 # SCIENCE_POS_DIR = "data/anchors/scientific_justification_pos_sentences.csv"
 # SCIENCE_NEG_DIR = "data/anchors/scientific_justification_neg_sentences.csv"
 
-# Preset speakers and years for data analysis and visualization
 RELIGION_SPKR, RELIGION_YEAR = "Michael Gold ", 1999
 POLITICS_SPKR, POLITICS_YEAR = "David A. Hartman", 2004
 SCIENCE_SPKR, SCIENCE_YEAR = "Francisco J. González Estepa", 2012
 NEUTRAL_SPKR, NEUTRAL_YEAR = "Akira Morita", 1997
 
-# Dictionary to store topic information for easy access and organization
-# Format is as follows:
-# "Topic Name": {
-#     "Positive": Path to CSV file containing positive anchor sentences for the topic,
-#     "Negative": Path to CSV file containing negative anchor sentences for the topic,
-#     "Speaker": Name of the speaker whose speech will be analyzed for the topic,
-#     "Year": Year of the speech to be analyzed for the topic,
-# } for each topic. The "Neutral" topic only contains a speaker and year, as it is used for comparison against the other topics rather than defining a topic axis.
+
 TOPICS = {
     "Religion": {
         "Positive": RELIGION_POS_DIR,
@@ -151,6 +118,47 @@ def main():
             TOPICS[topic]["Year"],
             TOPICS["Neutral"]["Year"],
         )
+
+        years = np.array(list(yearly_topic_scores.keys()))
+        colors = ["limegreen", "mediumpurple", "aquamarine"]
+        for i in range(1, 4):
+            gmm = GaussianMixture(n_components=i, random_state=420)
+            for year in years:
+                scores = np.array(yearly_topic_scores[year]).reshape(-1, 1)
+                gmm.fit(scores)
+                x_axis = np.linspace(
+                    scores.min() - 0.01, scores.max() + 0.01, 1000
+                ).reshape(-1, 1)
+                log_density = gmm.score_samples(x_axis)
+                density = np.exp(log_density)
+                _, ax = plt.subplots(figsize=(10, 6))
+                ax.hist(
+                    yearly_topic_scores[year],
+                    bins=30,
+                    alpha=0.7,
+                    density=True,
+                    color="cornflowerblue",
+                    edgecolor="black",
+                )
+                ax.plot(x_axis, density, color="lightsalmon", lw=2)
+                for j in range(i):
+                    mean = gmm.means_[j][0]
+                    std = np.sqrt(gmm.covariances_[j][0][0])
+                    weight = gmm.weights_[j]
+
+                    pdf = weight * norm.pdf(x_axis, mean, std)
+                    plt.plot(x_axis, pdf, "--", color=colors[i % 3])
+                ax.set_title(f"{topic} {year} {i} components")
+                ax.set_xlabel(f"BIC: {gmm.bic(scores):.5f}")
+                ax.set_ylabel("density")
+                ax.legend()
+                ax.grid(True, alpha=0.3)
+                plt.savefig(
+                    f"outputs/plots/GMM/{topic}_{year}_{i}.png",
+                    dpi=300,
+                    bbox_inches="tight",
+                )
+        continue
 
         pca.save_pca_plot(
             topic,
