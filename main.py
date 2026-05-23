@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
+from scipy import stats
+from scipy.interpolate import make_splrep
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
@@ -120,44 +122,118 @@ def main():
         )
 
         years = np.array(list(yearly_topic_scores.keys()))
-        colors = ["limegreen", "mediumpurple", "aquamarine"]
-        for i in range(1, 4):
-            gmm = GaussianMixture(n_components=i, random_state=420)
-            for year in years:
-                scores = np.array(yearly_topic_scores[year]).reshape(-1, 1)
-                gmm.fit(scores)
-                x_axis = np.linspace(
-                    scores.min() - 0.01, scores.max() + 0.01, 1000
-                ).reshape(-1, 1)
-                log_density = gmm.score_samples(x_axis)
-                density = np.exp(log_density)
-                _, ax = plt.subplots(figsize=(10, 6))
-                ax.hist(
-                    yearly_topic_scores[year],
-                    bins=30,
-                    alpha=0.7,
-                    density=True,
-                    color="cornflowerblue",
-                    edgecolor="black",
-                )
-                ax.plot(x_axis, density, color="lightsalmon", lw=2)
-                for j in range(i):
-                    mean = gmm.means_[j][0]
-                    std = np.sqrt(gmm.covariances_[j][0][0])
-                    weight = gmm.weights_[j]
+        colors = ["green", "purple", "orange"]
+        gmm = GaussianMixture(n_components=2, random_state=420)
+        means = []
+        for year in years:
+            scores = np.array(yearly_topic_scores[year]).reshape(-1, 1)
+            gmm.fit(scores)
+            x_axis = np.linspace(
+                scores.min() - 0.01, scores.max() + 0.01, 1000
+            ).reshape(-1, 1)
+            log_density = gmm.score_samples(x_axis)
+            density = np.exp(log_density)
+            _, ax = plt.subplots(figsize=(10, 6))
+            ax.hist(
+                yearly_topic_scores[year],
+                bins=30,
+                alpha=0.7,
+                density=True,
+                color="cornflowerblue",
+                edgecolor="black",
+            )
+            ax.plot(x_axis, density, color="red", lw=2, alpha=0.7)
+            for j in range(2):
+                mean = gmm.means_[j][0]
+                std = np.sqrt(gmm.covariances_[j][0][0])
+                weight = gmm.weights_[j]
 
-                    pdf = weight * norm.pdf(x_axis, mean, std)
-                    plt.plot(x_axis, pdf, "--", color=colors[i % 3])
-                ax.set_title(f"{topic} {year} {i} components")
-                ax.set_xlabel(f"BIC: {gmm.bic(scores):.5f}")
-                ax.set_ylabel("density")
-                ax.legend()
-                ax.grid(True, alpha=0.3)
-                plt.savefig(
-                    f"outputs/plots/GMM/{topic}_{year}_{i}.png",
-                    dpi=300,
-                    bbox_inches="tight",
-                )
+                pdf = weight * norm.pdf(x_axis, mean, std)
+                plt.plot(x_axis, pdf, "--", color=colors[j % 3], alpha=0.7)
+                if j == 1:
+                    means.append(mean)
+            ax.set_title(f"{topic} {year} {2} components")
+            ax.set_xlabel(f"BIC: {gmm.bic(scores):.5f}")
+            ax.set_ylabel("density")
+            ax.legend()
+            ax.grid(True, alpha=0.3)
+            plt.savefig(
+                f"outputs/plots/GMM/{topic}_{year}_{2}.png",
+                dpi=300,
+                bbox_inches="tight",
+            )
+        _, ax = plt.subplots(figsize=(10, 6))
+        ax.scatter(years, means, label="yearly means")
+        spline1 = make_splrep(years, means, s=10)
+        spline2 = make_splrep(years, means, k=2, s=10)
+        poly1 = np.poly1d(np.polyfit(years, means, 3))
+        poly2 = np.poly1d(np.polyfit(years, means, 2))
+        smooth_years = np.linspace(years.min(), years.max(), 1000)
+        ax.plot(
+            smooth_years, spline1(smooth_years), color="blue", label="spline", alpha=0.7
+        )
+        ax.plot(
+            smooth_years,
+            spline2(smooth_years),
+            color="orange",
+            label="spline quadratic",
+            alpha=0.7,
+        )
+        ax.plot(
+            smooth_years,
+            poly1(smooth_years),
+            color="green",
+            label="poly 3 degrees",
+            alpha=0.7,
+        )
+        ax.plot(
+            smooth_years,
+            poly2(smooth_years),
+            color="red",
+            label="poly 2 degrees",
+            alpha=0.7,
+        )
+        s, i, _, p, _ = stats.linregress(years, means)
+        line = s * years + i
+        ax.plot(
+            years,
+            line,
+            color="purple",
+            alpha=0.7,
+            label=f"linreg -> slope: {s:.5f}, p-value: {p:.5f}",
+        )
+        ax.set_xlabel("Year")
+        ax.set_ylabel(f"{topic} topic score")
+        ax.set_title(f"{topic} yearly trend")
+        ax.legend()
+        plt.savefig(f"outputs/plots/Trend/{topic}", dpi=300, bbox_inches="tight")
+
+        _, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(years, means - spline1(years), color="blue", label="spline", alpha=0.7)
+        ax.plot(
+            years,
+            means - spline2(years),
+            color="orange",
+            label="spline quadratic",
+            alpha=0.7,
+        )
+        ax.plot(
+            years,
+            means - poly1(years),
+            color="green",
+            label="poly 3 degrees",
+            alpha=0.7,
+        )
+        ax.plot(
+            years,
+            means - poly2(years),
+            color="red",
+            label="poly 2 degrees",
+            alpha=0.7,
+        )
+        ax.set_title(f"{topic} residuals")
+        ax.legend()
+        plt.savefig(f"outputs/plots/Residuals/{topic}", dpi=300, bbox_inches="tight")
         continue
 
         pca.save_pca_plot(
