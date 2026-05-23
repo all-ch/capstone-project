@@ -10,6 +10,7 @@ from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 from scipy import stats
 from scipy.interpolate import make_splrep
+import statsmodels.api as sm
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
@@ -124,6 +125,7 @@ def main():
         years = np.array(list(yearly_topic_scores.keys()))
         colors = ["green", "purple", "orange"]
         gmm = GaussianMixture(n_components=2, random_state=420)
+        lowess = sm.nonparametric.lowess
         means = []
         for year in years:
             scores = np.array(yearly_topic_scores[year]).reshape(-1, 1)
@@ -164,33 +166,45 @@ def main():
             )
         _, ax = plt.subplots(figsize=(10, 6))
         ax.scatter(years, means, label="yearly means")
-        spline1 = make_splrep(years, means, s=10)
-        spline2 = make_splrep(years, means, k=2, s=10)
+        spline1 = make_splrep(years, means)
+        spline2 = make_splrep(years, means, k=2)
         poly1 = np.poly1d(np.polyfit(years, means, 3))
         poly2 = np.poly1d(np.polyfit(years, means, 2))
+        lowess1 = lowess(means, years, frac=0.3)
         smooth_years = np.linspace(years.min(), years.max(), 1000)
         ax.plot(
-            smooth_years, spline1(smooth_years), color="blue", label="spline", alpha=0.7
+            years,
+            np.interp(years, lowess1[:, 0], lowess1[:, 1]),
+            color="blue",
+            label="lowess 0.3",
+            alpha=0.7,
+        )
+        ax.plot(
+            smooth_years,
+            spline1(smooth_years),
+            color="orange",
+            label="spline 3",
+            alpha=0.7,
         )
         ax.plot(
             smooth_years,
             spline2(smooth_years),
-            color="orange",
-            label="spline quadratic",
+            color="green",
+            label="spline 2",
             alpha=0.7,
         )
         ax.plot(
             smooth_years,
             poly1(smooth_years),
-            color="green",
-            label="poly 3 degrees",
+            color="red",
+            label="poly 3",
             alpha=0.7,
         )
         ax.plot(
             smooth_years,
             poly2(smooth_years),
-            color="red",
-            label="poly 2 degrees",
+            color="brown",
+            label="poly 2",
             alpha=0.7,
         )
         s, i, _, p, _ = stats.linregress(years, means)
@@ -209,26 +223,46 @@ def main():
         plt.savefig(f"outputs/plots/Trend/{topic}", dpi=300, bbox_inches="tight")
 
         _, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(years, means - spline1(years), color="blue", label="spline", alpha=0.7)
+        ax.plot(
+            years,
+            means - np.interp(years, lowess1[:, 0], lowess1[:, 1]),
+            color="blue",
+            label="lowess 0.3",
+            alpha=0.7,
+        )
+        ax.plot(
+            years,
+            means - spline1(years),
+            color="orange",
+            label="spline 3",
+            alpha=0.7,
+        )
         ax.plot(
             years,
             means - spline2(years),
-            color="orange",
-            label="spline quadratic",
+            color="green",
+            label="spline 2",
             alpha=0.7,
         )
         ax.plot(
             years,
             means - poly1(years),
-            color="green",
-            label="poly 3 degrees",
+            color="red",
+            label="poly 3",
             alpha=0.7,
         )
         ax.plot(
             years,
             means - poly2(years),
-            color="red",
-            label="poly 2 degrees",
+            color="brown",
+            label="poly 2",
+            alpha=0.7,
+        )
+        ax.plot(
+            years,
+            means - line,
+            color="purple",
+            label="linear",
             alpha=0.7,
         )
         ax.set_title(f"{topic} residuals")
