@@ -11,6 +11,10 @@ from scipy.stats import norm
 from scipy import stats
 from scipy.interpolate import make_splrep
 import statsmodels.api as sm
+from pygam import LinearGAM, s
+import seaborn as sns
+import pandas as pd
+from sklearn.metrics import r2_score
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
@@ -98,7 +102,7 @@ def main():
 
         if update_scores:
             yearly_topic_scores, yearly_avg_score = tm.compute_yearly_topic_scores(
-                data, topic_axis, topic_vec, nlp, model, q=0.75
+                data, topic_axis, topic_vec, nlp, model, q=0
             )
 
             with open(cache_path, "wb") as f:
@@ -126,7 +130,6 @@ def main():
         colors = ["green", "purple", "orange"]
         gmm = GaussianMixture(n_components=2, random_state=420)
         lowess = sm.nonparametric.lowess
-        means = []
         for year in years:
             scores = np.array(yearly_topic_scores[year]).reshape(-1, 1)
             gmm.fit(scores)
@@ -152,25 +155,38 @@ def main():
 
                 pdf = weight * norm.pdf(x_axis, mean, std)
                 plt.plot(x_axis, pdf, "--", color=colors[j % 3], alpha=0.7)
-                if j == 1:
-                    means.append(mean)
             ax.set_title(f"{topic} {year} {2} components")
             ax.set_xlabel(f"BIC: {gmm.bic(scores):.5f}")
             ax.set_ylabel("density")
             ax.legend()
             ax.grid(True, alpha=0.3)
             plt.savefig(
-                f"outputs/plots/GMM/{topic}_{year}_{2}.png",
+                f"outputs/plots/GMM2/{topic}_{year}_{2}.png",
                 dpi=300,
                 bbox_inches="tight",
             )
+        years, scores = map(
+            np.array,
+            zip(
+                *[
+                    (year, score)
+                    for year, k in yearly_topic_scores.items()
+                    for score in k
+                ]
+            ),
+        )
         _, ax = plt.subplots(figsize=(10, 6))
-        ax.scatter(years, means, label="yearly means")
-        spline1 = make_splrep(years, means)
-        spline2 = make_splrep(years, means, k=2)
-        poly1 = np.poly1d(np.polyfit(years, means, 3))
-        poly2 = np.poly1d(np.polyfit(years, means, 2))
-        lowess1 = lowess(means, years, frac=0.3)
+        ax.violinplot(
+            list(yearly_topic_scores.values()),
+            list(yearly_topic_scores.keys()),
+            widths=1,
+            showextrema=False,
+        )
+        spline1 = LinearGAM(s(0), n_splines=5).fit(years.reshape(-1, 1), scores)
+        spline2 = LinearGAM(s(0), n_splines=4).fit(years.reshape(-1, 1), scores)
+        poly1 = np.poly1d(np.polyfit(years, scores, 3))
+        poly2 = np.poly1d(np.polyfit(years, scores, 2))
+        lowess1 = lowess(scores, years, frac=0.3)
         smooth_years = np.linspace(years.min(), years.max(), 1000)
         ax.plot(
             years,
@@ -180,17 +196,17 @@ def main():
             alpha=0.7,
         )
         ax.plot(
-            smooth_years,
-            spline1(smooth_years),
+            smooth_years.reshape(-1, 1),
+            spline1.predict(smooth_years.reshape(-1, 1)),
             color="orange",
-            label="spline 3",
+            label="spline 5",
             alpha=0.7,
         )
         ax.plot(
-            smooth_years,
-            spline2(smooth_years),
+            smooth_years.reshape(-1, 1),
+            spline2.predict(smooth_years.reshape(-1, 1)),
             color="green",
-            label="spline 2",
+            label="spline 4",
             alpha=0.7,
         )
         ax.plot(
@@ -207,67 +223,76 @@ def main():
             label="poly 2",
             alpha=0.7,
         )
-        s, i, _, p, _ = stats.linregress(years, means)
-        line = s * years + i
+        slope, i, _, p, _ = stats.linregress(years, scores)
+        line = slope * years + i
         ax.plot(
             years,
             line,
             color="purple",
             alpha=0.7,
-            label=f"linreg -> slope: {s:.5f}, p-value: {p:.5f}",
+            label=f"linreg -> slope: {slope:.5f}, p-value: {p:.5f}",
         )
         ax.set_xlabel("Year")
         ax.set_ylabel(f"{topic} topic score")
         ax.set_title(f"{topic} yearly trend")
         ax.legend()
-        plt.savefig(f"outputs/plots/Trend/{topic}", dpi=300, bbox_inches="tight")
+        plt.savefig(f"outputs/plots/Trend2/{topic}", dpi=300, bbox_inches="tight")
 
         _, ax = plt.subplots(figsize=(10, 6))
         ax.plot(
             years,
-            means - np.interp(years, lowess1[:, 0], lowess1[:, 1]),
+            scores - np.interp(years, lowess1[:, 0], lowess1[:, 1]),
             color="blue",
             label="lowess 0.3",
             alpha=0.7,
         )
         ax.plot(
-            years,
-            means - spline1(years),
+            years.reshape(-1, 1),
+            scores - spline1.predict(years.reshape(-1, 1)),
             color="orange",
             label="spline 3",
             alpha=0.7,
         )
         ax.plot(
-            years,
-            means - spline2(years),
+            years.reshape(-1, 1),
+            scores - spline2.predict(years.reshape(-1, 1)),
             color="green",
             label="spline 2",
             alpha=0.7,
         )
         ax.plot(
             years,
-            means - poly1(years),
+            scores - poly1(years),
             color="red",
             label="poly 3",
             alpha=0.7,
         )
         ax.plot(
             years,
-            means - poly2(years),
+            scores - poly2(years),
             color="brown",
             label="poly 2",
             alpha=0.7,
         )
         ax.plot(
             years,
-            means - line,
+            scores - line,
             color="purple",
             label="linear",
             alpha=0.7,
         )
         ax.set_title(f"{topic} residuals")
         ax.legend()
-        plt.savefig(f"outputs/plots/Residuals/{topic}", dpi=300, bbox_inches="tight")
+        plt.savefig(f"outputs/plots/Residuals2/{topic}", dpi=300, bbox_inches="tight")
+
+        print(
+            "lowess:", r2_score(scores, np.interp(years, lowess1[:, 0], lowess1[:, 1]))
+        )
+        print("spline 5:", r2_score(scores, spline1.predict(years.reshape(-1, 1))))
+        print("spline 4:", r2_score(scores, spline2.predict(years.reshape(-1, 1))))
+        print("poly 3:", r2_score(scores, poly1(years)))
+        print("poly 2:", r2_score(scores, poly2(years)))
+        print("linear:", r2_score(scores, line))
         continue
 
         pca.save_pca_plot(
