@@ -158,8 +158,16 @@ def conf_hist_plot(
     embeds: Tensor | np.ndarray,
     color: str,
 ) -> None:
-    score_dist = compute_sent_level_topic_score_dist(embeds, axis, vec)
-    ax.hist(score_dist, bins=30, alpha=0.7, color=color, edgecolor="black")
+    score_dist = np.array(
+        compute_sent_level_topic_score_dist(embeds, axis, vec)
+    ).flatten()
+    ax.hist(
+        score_dist,
+        bins=30,
+        alpha=0.7,
+        color=color,
+        edgecolor="black",
+    )
     ax.set_title(f"{title} Speech By {speaker}\nSentence-Level {topic} Scores")
     ax.set_xlabel(f"{topic} Topic Score")
     ax.set_ylabel("Frequency")
@@ -220,7 +228,7 @@ def save_hist_comparison_plot(
     topic_color: str,
     neutral_color: str,
 ) -> None:
-    _, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
     conf_hist_plot(topic, topic, topic_spkr, ax1, axis, vec, topic_embeds, topic_color)
     conf_hist_plot(
@@ -233,7 +241,7 @@ def save_hist_comparison_plot(
         bbox_inches="tight",
     )
 
-    plt.close()
+    plt.close(fig)
 
 
 def conf_violinplot(
@@ -244,7 +252,7 @@ def conf_violinplot(
 ) -> None:
     years = np.array(list(yearly_scores.keys()))
     scores = [yearly_scores[year] for year in years]
-    _, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
     ax.violinplot(
         scores,
@@ -293,7 +301,7 @@ def conf_violinplot(
         bbox_inches="tight",
     )
 
-    plt.close()
+    plt.close(fig)
 
 
 def the_goat_tyler(

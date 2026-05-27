@@ -11,6 +11,7 @@ from scipy.stats import norm
 from scipy import stats
 from scipy.interpolate import make_splrep
 import statsmodels.api as sm
+from sklearn.metrics import r2_score
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
@@ -135,7 +136,7 @@ def main():
             ).reshape(-1, 1)
             log_density = gmm.score_samples(x_axis)
             density = np.exp(log_density)
-            _, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(10, 6))
             ax.hist(
                 yearly_topic_scores[year],
                 bins=30,
@@ -157,14 +158,14 @@ def main():
             ax.set_title(f"{topic} {year} {2} components")
             ax.set_xlabel(f"BIC: {gmm.bic(scores):.5f}")
             ax.set_ylabel("density")
-            ax.legend()
             ax.grid(True, alpha=0.3)
             plt.savefig(
                 f"outputs/plots/GMM/{topic}_{year}_{2}.png",
                 dpi=300,
                 bbox_inches="tight",
             )
-        _, ax = plt.subplots(figsize=(10, 6))
+            plt.close(fig)
+        fig, ax = plt.subplots(figsize=(10, 6))
         ax.scatter(years, means, label="yearly means")
         spline1 = make_splrep(years, means)
         spline2 = make_splrep(years, means, k=2)
@@ -221,8 +222,9 @@ def main():
         ax.set_title(f"{topic} yearly trend")
         ax.legend()
         plt.savefig(f"outputs/plots/Trend/{topic}", dpi=300, bbox_inches="tight")
+        plt.close(fig)
 
-        _, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(
             years,
             means - np.interp(years, lowess1[:, 0], lowess1[:, 1]),
@@ -268,7 +270,16 @@ def main():
         ax.set_title(f"{topic} residuals")
         ax.legend()
         plt.savefig(f"outputs/plots/Residuals/{topic}", dpi=300, bbox_inches="tight")
-        continue
+        plt.close(fig)
+
+        print(
+            "lowess:", r2_score(means, np.interp(years, lowess1[:, 0], lowess1[:, 1]))
+        )
+        print("spline 3:", r2_score(means, spline1(years)))
+        print("spline 2:", r2_score(means, spline2(years)))
+        print("poly 3:", r2_score(means, poly1(years)))
+        print("poly 2:", r2_score(means, poly2(years)))
+        print("linear:", r2_score(means, line))
 
         pca.save_pca_plot(
             topic,
