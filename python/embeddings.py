@@ -79,7 +79,7 @@ def split_speech_into_sentences(text: str, nlp: Language) -> list[str]:
 # INFO: initialization functions
 
 
-def initialize_all_models(
+def initialize_models(
     transformer_model_name: str,
     data_file_location: str | Path,
     nlp_name: str,

@@ -1,4 +1,4 @@
-from python import embeddings
+from python import embeddings as em
 import pickle
 import os
 
@@ -33,7 +33,15 @@ TOPICS = {
 
 
 def main():
-    pass
+    # INFO: initialize all models
+    dataframe, embeddings_model, nlp_model, gaussian_mixture_model, standard_scalar = (
+        em.initialize_models(
+            transformer_model_name=EMBEDDINGS_MODEL,
+            data_file_location=DATA_DIR,
+            nlp_name=NLP_MODEL,
+            random_state=420,
+        )
+    )
 
 
 if __name__ == "__main__":
