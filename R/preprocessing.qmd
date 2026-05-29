@@ -6,12 +6,12 @@ format: html
 ## Loading Data
 
 ```{r}
-# read excel as dataframe, and consider all blank, "NA", and "N/A" as NA type for R
 library(tidyverse)
 library(eurostat)
 library(here)
+library(stringr)
 
-conf_data <- readxl::read_excel(here("data/raw", "data.xlsx"), na = c("", "NA", "N/A"))
+conf_data <- readxl::read_excel(here("data/raw", "new_data.xlsx"), na = c("", "NA", "N/A"), col_types = "text")
 ```
 
 
@@ -21,24 +21,33 @@ conf_data <- readxl::read_excel(here("data/raw", "data.xlsx"), na = c("", "NA", 
 
 ```{r}
 speech_filter <- conf_data |>
-  # merge Presentation_TextX into a "speech" column
   unite("speech",
         Presentation_Text1,
         Presentation_Text2,
         Presentation_Text3,
         Presentation_Text4,
-        na.rm = T) |> # remove the empty columns
-  # filter the dataframe to only include the following columns
+        na.rm = T) |>
   select(
-    cyear = Conference_Year,
-    ctitle = Conference_Title,
+    year = Conference_Year,
     speaker = Person,
     speech) |>
-  mutate(speech = na_if(speech, "")) |> # second check to drop empty "speech" rows
-  group_by(cyear, ctitle, speaker) |> # grouping setup for below
-  mutate(sid = row_number()) |> # set unique IDs for speakers who have multiple speeches in one conference
-  ungroup() |> # undos orignal grouping
-  drop_na()
+  mutate(speech = na_if(speech, "")) |>
+  mutate(speaker = speaker |>
+           str_to_lower() |>
+           str_trim()
+         ) |>
+  drop_na() |>
+  group_by(speaker) |>
+  mutate(speaker_id = cur_group_id()) |>
+  ungroup() |>
+  mutate(speech_id = row_number()) |>
+  select(
+    speech_id,
+    speaker_id,
+    speaker,
+    year,
+    speech
+  )
 ```
 
 ### Preprocessing
@@ -73,6 +82,6 @@ cleaned_speech <- speech_filter |>
 #### Output
 
 ```{r}
-# write.csv(speech_filter, "../data/speeches.csv", row.names = F)
+write.csv(speech_filter, "../data/processed/new_speeches.csv", row.names = F)
 ```
 
