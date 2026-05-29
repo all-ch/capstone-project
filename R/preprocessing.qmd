@@ -11,7 +11,7 @@ library(eurostat)
 library(here)
 library(stringr)
 
-conf_data <- readxl::read_excel(here("data/raw", "new_data.xlsx"), na = c("", "NA", "N/A"), col_types = "text")
+conf_data <- readxl::read_excel(here("data/raw", "data.xlsx"), na = c("", "NA", "N/A"), col_types = "text")
 ```
 
 ## Filter Speech
@@ -50,6 +50,6 @@ speech_filter <- conf_data |>
 ## Output File
 
 ```{r}
-write.csv(speech_filter, "../data/processed/new_speeches.csv", row.names = F)
+write.csv(speech_filter, "../data/processed/speeches.csv", row.names = F)
 ```
 

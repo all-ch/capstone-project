@@ -1,3 +1,4 @@
+from numpy._core import ndarray
 from sentence_transformers import SentenceTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.mixture import GaussianMixture
@@ -18,18 +19,26 @@ def calculate_average_vector(embeddings: Tensor | np.ndarray) -> Tensor | np.nda
 
 
 def calculate_sentence_embeddings(
-    sent: list[str], model: SentenceTransformer
+    sentences: list[str], embeddings_model: SentenceTransformer
 ) -> Tensor | np.ndarray:
-    return model.encode(sent)
+    return embeddings_model.encode(sentences)
+
+
+def calculate_sentence_embeddings_centered_on_offset(
+    sentence_embeddings: Tensor | np.ndarray, offset: Tensor | np.ndarray
+) -> Tensor | np.ndarray:
+    return sentence_embeddings - offset
 
 
 # INFO: anchor functions
 
 
 def calculate_anchor_embeddings(
-    location: str | Path, model: SentenceTransformer
+    location: str | Path, embeddings_model: SentenceTransformer
 ) -> Tensor | np.ndarray:
-    return model.encode(pd.read_csv(location, header=None, sep="\t")[0].tolist())
+    return embeddings_model.encode(
+        pd.read_csv(location, header=None, sep="\t")[0].tolist()
+    )
 
 
 def calculate_topic_axis(
@@ -80,7 +89,7 @@ def split_speech_into_sentences(text: str, nlp: Language) -> list[str]:
 
 
 def initialize_models(
-    transformer_model_name: str,
+    embeddings_model_name: str,
     data_file_location: str | Path,
     nlp_name: str,
     random_state: int | None = None,
@@ -90,7 +99,7 @@ def initialize_models(
     data_file = ROOT_DIR / data_file_location
     return (
         pd.read_csv(data_file),
-        SentenceTransformer(transformer_model_name),
+        SentenceTransformer(embeddings_model_name),
         spacy.load(nlp_name),
         GaussianMixture(n_components=2, random_state=random_state),
         StandardScaler(),
