@@ -1,4 +1,5 @@
 from sentence_transformers import SentenceTransformer
+from sklearn.preprocessing import StandardScaler
 from sklearn.mixture import GaussianMixture
 from spacy.language import Language
 from pathlib import Path
@@ -9,7 +10,7 @@ import spacy
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
-# NOTE: base functions
+# INFO: base functions
 
 
 def calculate_average_vector(embeddings: Tensor | np.ndarray) -> Tensor | np.ndarray:
@@ -22,7 +23,7 @@ def calculate_sentence_embeddings(
     return model.encode(sent)
 
 
-# NOTE: anchor functions
+# INFO: anchor functions
 
 
 def calculate_anchor_embeddings(
@@ -67,7 +68,7 @@ def calculate_topic_vectors(
     return [topic_axis, topic_offset]
 
 
-# NOTE: speech functions
+# INFO: speech functions
 
 
 def split_speech_into_sentences(text: str, nlp: Language) -> list[str]:
@@ -75,7 +76,7 @@ def split_speech_into_sentences(text: str, nlp: Language) -> list[str]:
     return [sentence.text.strip() for sentence in speech.sents]
 
 
-# NOTE: initialization functions
+# INFO: initialization functions
 
 
 def initialize_all_models(
@@ -83,11 +84,14 @@ def initialize_all_models(
     data_file_location: str | Path,
     nlp_name: str,
     random_state: int | None = None,
-) -> tuple[pd.DataFrame, SentenceTransformer, Language, GaussianMixture]:
+) -> tuple[
+    pd.DataFrame, SentenceTransformer, Language, GaussianMixture, StandardScaler
+]:
     data_file = ROOT_DIR / data_file_location
     return (
         pd.read_csv(data_file),
         SentenceTransformer(transformer_model_name),
         spacy.load(nlp_name),
         GaussianMixture(n_components=2, random_state=random_state),
+        StandardScaler(),
     )
