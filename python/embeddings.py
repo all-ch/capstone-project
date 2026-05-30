@@ -31,6 +31,10 @@ def calculate_sentence_embeddings_centered_on_offset(
     return sentence_embeddings - offset
 
 
+def convert_string_to_array(array: str) -> np.ndarray:
+    return np.fromstring(string=array[1:-1], sep=" ")
+
+
 # INFO: anchor functions
 
 

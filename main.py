@@ -1,5 +1,7 @@
 from python import embeddings
 from python import models
+import pandas as pd
+import numpy as np
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
@@ -37,6 +39,8 @@ TOPICS = {
         "Negative Anchors": SCIENCE_NEGATIVE_ANCHOR_LOCATION,
     },
 }
+
+# TODO: switch to parquet
 
 
 def main():
@@ -78,6 +82,10 @@ def main():
                 )
             )
 
+    if recompute_cosine_similarity:
+        dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
+        print("Finished Cosine Similarity Recompute.")
+
     for topic in TOPICS.keys():
         if recompute_gaussian_mixture_model_components:
             metric_columns = [f"{topic} mean", f"{topic} sd", f"{topic} weight"]
@@ -89,20 +97,19 @@ def main():
             dataframe[metric_columns] = dataframe[f"{topic} distribution"].apply(
                 lambda distribution: (
                     models.calculate_weighted_metrics_from_gaussian_mixture_model(
-                        distribution=distribution,
+                        distribution=embeddings.convert_string_to_array(distribution),
                         gaussian_mixture_model=gaussian_mixture_model,
-                    ),
-                ),
-                result_type="expand",
+                    )
+                )
             )
 
             dataframe[metric_columns_scaled] = standard_scalar.fit_transform(
                 dataframe[metric_columns]
             )
 
-    if recompute_cosine_similarity or recompute_gaussian_mixture_model_components:
+    if recompute_gaussian_mixture_model_components:
         dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
-        print("Finished Recomputing.")
+        print("Finished Gaussian Mixture Model Components Recompute.")
 
 
 if __name__ == "__main__":

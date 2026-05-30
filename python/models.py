@@ -27,4 +27,4 @@ def calculate_weighted_metrics_from_gaussian_mixture_model(
         )
     else:
         weight = weighted_mean = weighted_standard_deviation = 0
-    return pd.Series(data=[weighted_mean, weighted_standard_deviation, weight])
+    return pd.Series([weighted_mean, weighted_standard_deviation, weight])
