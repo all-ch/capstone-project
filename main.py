@@ -59,6 +59,16 @@ def main():
             embeddings_model=embeddings_model,
         )
 
+        dataframe["distribution"] = dataframe["speech"].apply(
+            lambda speech: em.calculate_speech_level_cosine_similarity_distribution(
+                speech=speech,
+                topic_axis=topic_axis,
+                topic_offset=topic_offset,
+                embeddings_model=embeddings_model,
+                nlp_model=nlp_model,
+            )
+        )
+
 
 if __name__ == "__main__":
     main()
