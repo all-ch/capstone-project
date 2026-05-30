@@ -78,6 +78,7 @@ def main():
                 )
             )
 
+    for topic in TOPICS.keys():
         if recompute_gaussian_mixture_model_components:
             metric_columns = [f"{topic} mean", f"{topic} sd", f"{topic} weight"]
             metric_columns_scaled = [
@@ -92,11 +93,13 @@ def main():
                         gaussian_mixture_model=gaussian_mixture_model,
                     ),
                 ),
+                result_type="expand",
             )
 
             dataframe[metric_columns_scaled] = standard_scalar.fit_transform(
                 dataframe[metric_columns]
             )
+
     if recompute_cosine_similarity or recompute_gaussian_mixture_model_components:
         dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
         print("Finished Recomputing.")

@@ -108,7 +108,7 @@ def calculate_speech_level_cosine_similarity_distribution(
         sentence_embeddings=sentence_embeddings, offset=topic_offset
     )
     return cosine_similarity(
-        X=centered_sentence_embeddings.reshape(1, -1), Y=topic_axis.reshape(1, -1)
+        X=centered_sentence_embeddings, Y=topic_axis.reshape(1, -1)
     ).flatten()
 
 
