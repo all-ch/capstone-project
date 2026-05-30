@@ -90,6 +90,8 @@ def main():
                 ),
             )
 
+            dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
+
 
 if __name__ == "__main__":
     main()
