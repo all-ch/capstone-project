@@ -80,6 +80,11 @@ def main():
 
         if recompute_gaussian_mixture_model_components:
             metric_columns = [f"{topic} mean", f"{topic} sd", f"{topic} weight"]
+            metric_columns_scaled = [
+                f"{topic} mean scaled",
+                f"{topic} sd scaled",
+                f"{topic} weight scaled",
+            ]
             dataframe[metric_columns] = dataframe[f"{topic} distribution"].apply(
                 lambda distribution: (
                     models.calculate_weighted_metrics_from_gaussian_mixture_model(
@@ -89,7 +94,7 @@ def main():
                 ),
             )
 
-            dataframe[metric_columns] = standard_scalar.fit_transform(
+            dataframe[metric_columns_scaled] = standard_scalar.fit_transform(
                 dataframe[metric_columns]
             )
     if recompute_cosine_similarity or recompute_gaussian_mixture_model_components:
