@@ -53,7 +53,7 @@ def main():
         input("Y to recompute cosine similarity score: ").casefold() == "y"
     )
     recompute_gaussian_mixture_model_components = (
-        input("Y to recompute gaussian mixture model components").casefold() == "y"
+        input("Y to recompute gaussian mixture model components: ").casefold() == "y"
     )
 
     for topic in TOPICS.keys():
