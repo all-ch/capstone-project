@@ -49,10 +49,15 @@ def main():
         )
     )
 
-    recompute = input("Y to recompute: ").lower()
+    recompute_cosine_similarity = (
+        input("Y to recompute cosine similarity score: ").casefold() == "y"
+    )
+    recompute_gaussian_mixture_model_components = (
+        input("Y to recompute gaussian mixture model components").casefold() == "y"
+    )
 
     for topic in TOPICS.keys():
-        if recompute:
+        if recompute_cosine_similarity:
             positive_anchor_file_location = TOPICS[topic]["Positive Anchors"]
             negative_anchor_file_location = TOPICS[topic]["Negative Anchors"]
             topic_axis, topic_offset = embeddings.calculate_topic_vectors(
@@ -75,14 +80,15 @@ def main():
 
             dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
 
-        dataframe[["mean", "var", "density"]] = dataframe["distribution"].apply(
-            lambda distribution: (
-                models.calculate_weighted_metrics_from_gaussian_mixture_model(
-                    distribution=distribution,
-                    gaussian_mixture_model=gaussian_mixture_model,
+        if recompute_gaussian_mixture_model_components:
+            dataframe[["mean", "var", "density"]] = dataframe["distribution"].apply(
+                lambda distribution: (
+                    models.calculate_weighted_metrics_from_gaussian_mixture_model(
+                        distribution=distribution,
+                        gaussian_mixture_model=gaussian_mixture_model,
+                    ),
                 ),
-            ),
-        )
+            )
 
 
 if __name__ == "__main__":
