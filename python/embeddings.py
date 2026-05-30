@@ -11,7 +11,6 @@ import pandas as pd
 import numpy as np
 import spacy
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # INFO: base functions
 
@@ -30,11 +29,6 @@ def calculate_sentence_embeddings_centered_on_offset(
     sentence_embeddings: Tensor | np.ndarray, offset: Tensor | np.ndarray
 ) -> Tensor | np.ndarray:
     return sentence_embeddings - offset
-
-
-def convert_string_to_array(array_string: str) -> np.ndarray:
-    array_string = array_string[1:-1].replace("\n", "").strip()
-    return np.fromstring(string=array_string, sep=" ")
 
 
 # INFO: anchor functions
@@ -67,14 +61,11 @@ def calculate_topic_vectors(
     negative_anchor_file_location: str | Path,
     embeddings_model: SentenceTransformer,
 ) -> list[Tensor | np.ndarray]:
-    positive_anchor_dataframe = ROOT_DIR / positive_anchor_file_location
-    negative_anchor_dataframe = ROOT_DIR / negative_anchor_file_location
-
     positive_anchor_embeddings = calculate_anchor_embeddings(
-        location=positive_anchor_dataframe, embeddings_model=embeddings_model
+        location=positive_anchor_file_location, embeddings_model=embeddings_model
     )
     negative_anchor_embeddings = calculate_anchor_embeddings(
-        location=negative_anchor_dataframe, embeddings_model=embeddings_model
+        location=negative_anchor_file_location, embeddings_model=embeddings_model
     )
 
     positive_anchor_vector = calculate_average_vector(positive_anchor_embeddings)
@@ -129,9 +120,8 @@ def initialize_models(
 ) -> tuple[
     pd.DataFrame, SentenceTransformer, Language, GaussianMixture, StandardScaler
 ]:
-    data_file = ROOT_DIR / data_file_location
     return (
-        pq.read_table(data_file).to_pandas(),
+        pq.read_table(data_file_location).to_pandas(),
         SentenceTransformer(model_name_or_path=embeddings_model_name),
         spacy.load(name=nlp_name),
         GaussianMixture(n_components=2, random_state=random_state),
