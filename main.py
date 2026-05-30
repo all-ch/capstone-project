@@ -1,6 +1,5 @@
-from python import embeddings as em
-import pickle
-import os
+from python import embeddings
+from python import models
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
@@ -42,7 +41,7 @@ TOPICS = {
 
 def main():
     dataframe, embeddings_model, nlp_model, gaussian_mixture_model, standard_scalar = (
-        em.initialize_models(
+        embeddings.initialize_models(
             embeddings_model_name=EMBEDDINGS_MODEL,
             data_file_location=DATA_FILE_LOCATION,
             nlp_name=NLP_MODEL,
@@ -56,23 +55,34 @@ def main():
         if recompute:
             positive_anchor_file_location = TOPICS[topic]["Positive Anchors"]
             negative_anchor_file_location = TOPICS[topic]["Negative Anchors"]
-            topic_axis, topic_offset = em.calculate_topic_vectors(
+            topic_axis, topic_offset = embeddings.calculate_topic_vectors(
                 positive_anchor_file_location=positive_anchor_file_location,
                 negative_anchor_file_location=negative_anchor_file_location,
                 embeddings_model=embeddings_model,
             )
 
             dataframe["distribution"] = dataframe["speech"].apply(
-                lambda speech: em.calculate_speech_level_cosine_similarity_distribution(
-                    speech=speech,
-                    topic_axis=topic_axis,
-                    topic_offset=topic_offset,
-                    embeddings_model=embeddings_model,
-                    nlp_model=nlp_model,
+                lambda speech: (
+                    embeddings.calculate_speech_level_cosine_similarity_distribution(
+                        speech=speech,
+                        topic_axis=topic_axis,
+                        topic_offset=topic_offset,
+                        embeddings_model=embeddings_model,
+                        nlp_model=nlp_model,
+                    )
                 )
             )
 
             dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
+
+        dataframe[["mean", "var", "density"]] = dataframe["distribution"].apply(
+            lambda distribution: (
+                models.calculate_weighted_metrics_from_gaussian_mixture_model(
+                    distribution=distribution,
+                    gaussian_mixture_model=gaussian_mixture_model,
+                ),
+            ),
+        )
 
 
 if __name__ == "__main__":
