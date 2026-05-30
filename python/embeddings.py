@@ -6,6 +6,7 @@ from spacy.language import Language
 from spacy.tokens import Doc
 from pathlib import Path
 from torch import Tensor
+import pyarrow.parquet as pq
 import pandas as pd
 import numpy as np
 import spacy
@@ -31,8 +32,9 @@ def calculate_sentence_embeddings_centered_on_offset(
     return sentence_embeddings - offset
 
 
-def convert_string_to_array(array: str) -> np.ndarray:
-    return np.fromstring(string=array[1:-1], sep=" ")
+def convert_string_to_array(array_string: str) -> np.ndarray:
+    array_string = array_string[1:-1].replace("\n", "").strip()
+    return np.fromstring(string=array_string, sep=" ")
 
 
 # INFO: anchor functions
@@ -129,7 +131,7 @@ def initialize_models(
 ]:
     data_file = ROOT_DIR / data_file_location
     return (
-        pd.read_csv(filepath_or_buffer=data_file),
+        pq.read_table(data_file).to_pandas(),
         SentenceTransformer(model_name_or_path=embeddings_model_name),
         spacy.load(name=nlp_name),
         GaussianMixture(n_components=2, random_state=random_state),

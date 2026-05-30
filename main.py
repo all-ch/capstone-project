@@ -1,12 +1,13 @@
 from python import embeddings
 from python import models
-import pandas as pd
+import pyarrow.parquet as pq
+import pyarrow as pa
 import numpy as np
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
 
-DATA_FILE_LOCATION = "data/processed/speeches.csv"
+DATA_FILE_LOCATION = "data/processed/table.parquet"
 
 RELIGION_POSITIVE_ANCHOR_LOCATION = (
     "data/anchors/religion_positive_anchor_sentences.csv"
@@ -83,7 +84,7 @@ def main():
             )
 
     if recompute_cosine_similarity:
-        dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
+        pq.write_table(pa.Table.from_pandas(dataframe), "table.parquet")
         print("Finished Cosine Similarity Recompute.")
 
     for topic in TOPICS.keys():
@@ -97,7 +98,7 @@ def main():
             dataframe[metric_columns] = dataframe[f"{topic} distribution"].apply(
                 lambda distribution: (
                     models.calculate_weighted_metrics_from_gaussian_mixture_model(
-                        distribution=embeddings.convert_string_to_array(distribution),
+                        distribution=np.array(distribution),
                         gaussian_mixture_model=gaussian_mixture_model,
                     )
                 )
@@ -108,7 +109,7 @@ def main():
             )
 
     if recompute_gaussian_mixture_model_components:
-        dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
+        pq.write_table(pa.Table.from_pandas(dataframe), "table.parquet")
         print("Finished Gaussian Mixture Model Components Recompute.")
 
 

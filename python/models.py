@@ -19,7 +19,7 @@ def calculate_weighted_metrics_from_gaussian_mixture_model(
 
     weight = np.sum(a=probability / len(distribution))
 
-    if weight > 0:
+    if weight > 1e-9:
         weighted_mean = np.sum(a=distribution * probability) / np.sum(a=probability)
         weighted_standard_deviation = np.sum(
             a=np.sqrt(probability * (distribution - weighted_mean) ** 2)
