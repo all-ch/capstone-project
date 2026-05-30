@@ -50,24 +50,29 @@ def main():
         )
     )
 
-    for topic in TOPICS.keys():
-        positive_anchor_file_location = TOPICS[topic]["Positive Anchors"]
-        negative_anchor_file_location = TOPICS[topic]["Negative Anchors"]
-        topic_axis, topic_offset = em.calculate_topic_vectors(
-            positive_anchor_file_location=positive_anchor_file_location,
-            negative_anchor_file_location=negative_anchor_file_location,
-            embeddings_model=embeddings_model,
-        )
+    recompute = input("Y to recompute: ").lower()
 
-        dataframe["distribution"] = dataframe["speech"].apply(
-            lambda speech: em.calculate_speech_level_cosine_similarity_distribution(
-                speech=speech,
-                topic_axis=topic_axis,
-                topic_offset=topic_offset,
+    for topic in TOPICS.keys():
+        if recompute:
+            positive_anchor_file_location = TOPICS[topic]["Positive Anchors"]
+            negative_anchor_file_location = TOPICS[topic]["Negative Anchors"]
+            topic_axis, topic_offset = em.calculate_topic_vectors(
+                positive_anchor_file_location=positive_anchor_file_location,
+                negative_anchor_file_location=negative_anchor_file_location,
                 embeddings_model=embeddings_model,
-                nlp_model=nlp_model,
             )
-        )
+
+            dataframe["distribution"] = dataframe["speech"].apply(
+                lambda speech: em.calculate_speech_level_cosine_similarity_distribution(
+                    speech=speech,
+                    topic_axis=topic_axis,
+                    topic_offset=topic_offset,
+                    embeddings_model=embeddings_model,
+                    nlp_model=nlp_model,
+                )
+            )
+
+            dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
 
 
 if __name__ == "__main__":

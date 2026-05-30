@@ -93,6 +93,25 @@ def split_speech_into_sentences(speech: str | Doc, nlp_model: Language) -> list[
     return [sentence.text.strip() for sentence in speech.sents]
 
 
+def calculate_speech_level_cosine_similarity_distribution(
+    speech: str | Doc,
+    topic_axis: Tensor | np.ndarray,
+    topic_offset: Tensor | np.ndarray,
+    embeddings_model: SentenceTransformer,
+    nlp_model: Language,
+) -> Tensor | np.ndarray:
+    sentences = split_speech_into_sentences(speech=speech, nlp_model=nlp_model)
+    sentence_embeddings = calculate_sentence_embeddings(
+        sentences=sentences, embeddings_model=embeddings_model
+    )
+    centered_sentence_embeddings = calculate_sentence_embeddings_centered_on_offset(
+        sentence_embeddings=sentence_embeddings, offset=topic_offset
+    )
+    return cosine_similarity(
+        X=centered_sentence_embeddings.reshape(1, -1), Y=topic_axis.reshape(1, -1)
+    ).flatten()
+
+
 # INFO: initialization functions
 
 
@@ -112,25 +131,3 @@ def initialize_models(
         GaussianMixture(n_components=2, random_state=random_state),
         StandardScaler(),
     )
-
-
-# INFO: multistep functions
-
-
-def calculate_speech_level_cosine_similarity_distribution(
-    speech: str | Doc,
-    topic_axis: Tensor | np.ndarray,
-    topic_offset: Tensor | np.ndarray,
-    embeddings_model: SentenceTransformer,
-    nlp_model: Language,
-) -> Tensor | np.ndarray:
-    sentences = split_speech_into_sentences(speech=speech, nlp_model=nlp_model)
-    sentence_embeddings = calculate_sentence_embeddings(
-        sentences=sentences, embeddings_model=embeddings_model
-    )
-    centered_sentence_embeddings = calculate_sentence_embeddings_centered_on_offset(
-        sentence_embeddings=sentence_embeddings, offset=topic_offset
-    )
-    return cosine_similarity(
-        X=centered_sentence_embeddings.reshape(1, -1), Y=topic_axis.reshape(1, -1)
-    ).flatten()
