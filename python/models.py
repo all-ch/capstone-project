@@ -22,9 +22,10 @@ def calculate_weighted_metrics_from_gaussian_mixture_model(
 
     if weight > 0:
         weighted_mean = np.sum(a=distribution * probability) / np.sum(a=probability)
-        weighted_var = np.sum(
-            a=probability * (distribution - weighted_mean) ** 2
-        ) / np.sum(a=probability)
+        weighted_standard_deviation = np.sum(
+            a=np.sqrt(probability * (distribution - weighted_mean) ** 2)
+            / np.sum(a=probability)
+        )
     else:
-        weight = weighted_mean = weighted_var = 0
-    return pd.Series(data=[weighted_mean, weighted_var, weight])
+        weight = weighted_mean = weighted_standard_deviation = 0
+    return pd.Series(data=[weighted_mean, weighted_standard_deviation, weight])

@@ -81,7 +81,7 @@ def main():
             dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
 
         if recompute_gaussian_mixture_model_components:
-            dataframe[["mean", "var", "density"]] = dataframe["distribution"].apply(
+            dataframe[["mean", "sd", "weight"]] = dataframe["distribution"].apply(
                 lambda distribution: (
                     models.calculate_weighted_metrics_from_gaussian_mixture_model(
                         distribution=distribution,
