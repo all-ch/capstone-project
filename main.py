@@ -66,7 +66,7 @@ def main():
                 embeddings_model=embeddings_model,
             )
 
-            dataframe["distribution"] = dataframe["speech"].apply(
+            dataframe[f"{topic} distribution"] = dataframe["speech"].apply(
                 lambda speech: (
                     embeddings.calculate_speech_level_cosine_similarity_distribution(
                         speech=speech,
@@ -78,10 +78,9 @@ def main():
                 )
             )
 
-            dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
-
         if recompute_gaussian_mixture_model_components:
-            dataframe[["mean", "sd", "weight"]] = dataframe["distribution"].apply(
+            metric_columns = [f"{topic} mean", f"{topic} sd", f"{topic} weight"]
+            dataframe[metric_columns] = dataframe[f"{topic} distribution"].apply(
                 lambda distribution: (
                     models.calculate_weighted_metrics_from_gaussian_mixture_model(
                         distribution=distribution,
@@ -90,7 +89,12 @@ def main():
                 ),
             )
 
-            dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
+            dataframe[metric_columns] = standard_scalar.fit_transform(
+                dataframe[metric_columns]
+            )
+    if recompute_cosine_similarity or recompute_gaussian_mixture_model_components:
+        dataframe.to_csv(path_or_buf=DATA_FILE_LOCATION, index=False)
+        print("Finished Recomputing.")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,3 @@
-from sklearn.preprocessing import StandardScaler
 from sklearn.mixture import GaussianMixture
 from torch import Tensor
 import pandas as pd
