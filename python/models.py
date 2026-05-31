@@ -1,5 +1,9 @@
+from pandas.io.xml import DataFrame
+from sklearn.linear_model import LinearRegression
 from sklearn.mixture import GaussianMixture
+import matplotlib.pyplot as plt
 from torch import Tensor
+from pathlib import Path
 import pandas as pd
 import numpy as np
 
@@ -21,10 +25,63 @@ def calculate_weighted_metrics_from_gaussian_mixture_model(
 
     if weight > 1e-9:
         weighted_mean = np.sum(a=distribution * probability) / np.sum(a=probability)
-        weighted_standard_deviation = np.sum(
-            a=np.sqrt(probability * (distribution - weighted_mean) ** 2)
+        weighted_standard_deviation = np.sqrt(
+            np.sum(a=probability * (distribution - weighted_mean) ** 2)
             / np.sum(a=probability)
         )
     else:
         weight = weighted_mean = weighted_standard_deviation = 0
     return pd.Series([weighted_mean, weighted_standard_deviation, weight])
+
+
+# INFO: linear regression functions
+
+
+def predict_fitted_linear_regression(
+    topic: str, group_by: str, dataframe: pd.DataFrame
+) -> np.ndarray:
+    filtered_dataframe = (
+        dataframe.groupby(by=group_by)[f"{topic} mean"].mean().reset_index()
+    )
+    X, y = filtered_dataframe[[group_by]], filtered_dataframe[f"{topic} mean"]
+    model = LinearRegression().fit(X=X, y=y)
+    return model.predict(X=X)
+
+
+def save_linear_regression_with_violin_plot(
+    topic: str,
+    feature: str,
+    y: np.ndarray,
+    dataframe: pd.DataFrame,
+    save_location: Path,
+) -> None:
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.violinplot(dataset=y, positions=dataframe[feature], widths=1, showmeans=True)
+    ax.plot(x=dataframe[feature], y=y)
+    plt.savefig(
+        fname=save_location / f"{topic} linear regression with violin",
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close(fig=fig)
+    return None
+
+
+def compute_all_linear_regression_plots(
+    group_by: str,
+    topics: dict[str, dict[str, Path]],
+    dataframe: pd.DataFrame,
+    save_location: Path,
+) -> None:
+    for topic in topics.keys():
+        prediction = predict_fitted_linear_regression(
+            topic=topic, group_by=group_by, dataframe=dataframe
+        )
+        save_linear_regression_with_violin_plot(
+            topic=topic,
+            feature=group_by,
+            y=prediction,
+            dataframe=dataframe,
+            save_location=save_location,
+        )
+    return None

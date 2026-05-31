@@ -1,5 +1,6 @@
 from python import embeddings
 from python import recompute
+from python import models
 from pathlib import Path
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
@@ -8,6 +9,7 @@ NLP_MODEL = "en_core_web_sm"
 ROOT_DIRECTORY = Path(__file__).resolve().parent
 DATA_DIRECTORY = ROOT_DIRECTORY / "data"
 ANCHOR_DIRECTORY = DATA_DIRECTORY / "anchors"
+OUTPUT_DIRECTORY = DATA_DIRECTORY / "outputs"
 
 DATA_FILE_LOCATION = DATA_DIRECTORY / "processed" / "table.parquet"
 
@@ -48,6 +50,13 @@ def main():
         data_file_location=DATA_FILE_LOCATION,
         gaussian_mixture_model=gaussian_mixture_model,
         standard_scalar=standard_scalar,
+    )
+
+    models.compute_all_linear_regression_plots(
+        group_by="cyear",
+        topics=TOPICS,
+        dataframe=dataframe,
+        save_location=OUTPUT_DIRECTORY,
     )
 
 
