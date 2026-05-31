@@ -40,6 +40,7 @@ def main():
         embeddings_model=embeddings_model,
         nlp_model=nlp_model,
     )
+
     recompute.recompute_gaussian_mixture_model_components(
         input=input("Y to recompute gaussian mixture model components: "),
         topics=TOPICS,
