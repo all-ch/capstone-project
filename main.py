@@ -9,7 +9,7 @@ NLP_MODEL = "en_core_web_sm"
 ROOT_DIRECTORY = Path(__file__).resolve().parent
 DATA_DIRECTORY = ROOT_DIRECTORY / "data"
 ANCHOR_DIRECTORY = DATA_DIRECTORY / "anchors"
-OUTPUT_DIRECTORY = DATA_DIRECTORY / "outputs"
+OUTPUT_DIRECTORY = ROOT_DIRECTORY / "outputs"
 
 DATA_FILE_LOCATION = DATA_DIRECTORY / "processed" / "table.parquet"
 

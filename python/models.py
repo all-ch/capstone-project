@@ -1,4 +1,3 @@
-from pandas.io.xml import DataFrame
 from sklearn.linear_model import LinearRegression
 from sklearn.mixture import GaussianMixture
 import matplotlib.pyplot as plt
@@ -56,8 +55,14 @@ def save_linear_regression_with_violin_plot(
     save_location: Path,
 ) -> None:
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.violinplot(dataset=y, positions=dataframe[feature], widths=1, showmeans=True)
-    ax.plot(x=dataframe[feature], y=y)
+    X = dataframe[feature].unique()
+    violin_data = [
+        dataframe[dataframe[feature] == pos][f"{topic} mean"].values for pos in X
+    ]
+    ax.violinplot(
+        dataset=violin_data, positions=X, widths=1, showmeans=True, showextrema=False
+    )
+    ax.plot(X, y)
     plt.savefig(
         fname=save_location / f"{topic} linear regression with violin",
         dpi=300,
