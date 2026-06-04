@@ -1,8 +1,9 @@
 from sklearn.linear_model import LinearRegression
 from sklearn.mixture import GaussianMixture
-import matplotlib.pyplot as plt
 from torch import Tensor
 from pathlib import Path
+from scipy import stats
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
@@ -59,11 +60,13 @@ def save_linear_regression_with_violin_plot(
     violin_data = [
         dataframe[dataframe[feature] == pos][f"{topic} mean"].values for pos in X
     ]
+    slope, _, _, pvalue, _ = stats.linregress(x=X, y=y)
     ax.violinplot(
         dataset=violin_data, positions=X, widths=1, showmeans=True, showextrema=False
     )
-    ax.plot(X, y)
+    ax.plot(X, y, label=f"slope: {slope:.5f}, p-value: {pvalue:.5f}")
     ax.set_title(f"{topic}")
+    ax.legend()
     plt.savefig(
         fname=save_location / f"{topic} linear regression with violin",
         dpi=300,
