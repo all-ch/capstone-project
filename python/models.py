@@ -63,6 +63,7 @@ def save_linear_regression_with_violin_plot(
         dataset=violin_data, positions=X, widths=1, showmeans=True, showextrema=False
     )
     ax.plot(X, y)
+    ax.set_title(f"{topic}")
     plt.savefig(
         fname=save_location / f"{topic} linear regression with violin",
         dpi=300,

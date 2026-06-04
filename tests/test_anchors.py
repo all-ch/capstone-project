@@ -18,6 +18,8 @@ NEGATIVE_ANCHOR_DIRECTORY = ANCHOR_DIRECTORY / "religion_negative_anchor_sentenc
 EXPLICIT_TOPIC_SENTENCE = "We must embrace the sacred calling to multiply and replenish the earth, for every new life is not merely a choice, but a divine mandate to fulfill God's command to be fruitful and fill the heavens with His glory."
 IMPLICIT_TOPIC_SENTENCE = "We must recognize that our duty is not merely to exist for ourselves, but to serve as stewards of life, ensuring that the sacred flame passed down to us continues to burn brightly through the generations to come."
 RANDOM_TOPIC_SENTENCE = "The vibes were immaculate as I was grinding up the hill, but honestly, nothing hits harder than crushing a glizzy mid-ride—it’s literally peak euphoria."
+RELIGIOUS_NO_JUSTIFICATION = "I walked through the hours of this day feeling the quiet, constant presence of the Divine beside me."
+BIBLICAL_TEXT_NO_JUSTIFICATION = "I am the Lord your God, who brought you out of the land of Egypt, out of the house of bondage."
 
 
 def run_anchor_comparisons():
@@ -74,6 +76,8 @@ def run_anchor_comparisons():
             EXPLICIT_TOPIC_SENTENCE,
             IMPLICIT_TOPIC_SENTENCE,
             RANDOM_TOPIC_SENTENCE,
+            RELIGIOUS_NO_JUSTIFICATION,
+            BIBLICAL_TEXT_NO_JUSTIFICATION,
         ],
         embeddings_model=embeddings_model,
     )

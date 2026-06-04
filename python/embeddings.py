@@ -93,19 +93,23 @@ def split_speech_into_sentences(speech: str | Doc, nlp_model: Language) -> list[
 def calculate_speech_level_cosine_similarity_distribution(
     speech: str | Doc,
     topic_axis: Tensor | np.ndarray,
-    topic_offset: Tensor | np.ndarray,
     embeddings_model: SentenceTransformer,
     nlp_model: Language,
+    topic_offset: Tensor | np.ndarray | None = None,
 ) -> Tensor | np.ndarray:
     sentences = split_speech_into_sentences(speech=speech, nlp_model=nlp_model)
     sentence_embeddings = calculate_sentence_embeddings(
         sentences=sentences, embeddings_model=embeddings_model
     )
-    centered_sentence_embeddings = calculate_sentence_embeddings_centered_on_offset(
-        sentence_embeddings=sentence_embeddings, offset=topic_offset
+    sentence_embeddings = (
+        sentence_embeddings
+        if topic_offset is None
+        else calculate_sentence_embeddings_centered_on_offset(
+            sentence_embeddings=sentence_embeddings, offset=topic_offset
+        )
     )
     return cosine_similarity(
-        X=centered_sentence_embeddings, Y=topic_axis.reshape(1, -1)
+        X=sentence_embeddings, Y=topic_axis.reshape(1, -1)
     ).flatten()
 
 

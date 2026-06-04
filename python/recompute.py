@@ -22,11 +22,17 @@ def recompute_cosine_similarity(
     if input.casefold() == "y":
         for topic in topics.keys():
             positive_anchor_file_location = topics[topic]["Positive Anchors"]
-            negative_anchor_file_location = topics[topic]["Negative Anchors"]
-            topic_axis, topic_offset = embeddings.calculate_topic_vectors(
-                positive_anchor_file_location=positive_anchor_file_location,
-                negative_anchor_file_location=negative_anchor_file_location,
-                embeddings_model=embeddings_model,
+            # negative_anchor_file_location = topics[topic]["Negative Anchors"]
+            # topic_axis, topic_offset = embeddings.calculate_topic_vectors(
+            #     positive_anchor_file_location=positive_anchor_file_location,
+            #     negative_anchor_file_location=negative_anchor_file_location,
+            #     embeddings_model=embeddings_model,
+            # )
+            topic_axis = embeddings.calculate_average_vector(
+                embeddings=embeddings.calculate_anchor_embeddings(
+                    location=positive_anchor_file_location,
+                    embeddings_model=embeddings_model,
+                )
             )
 
             dataframe[f"{topic} distribution"] = dataframe["speech"].apply(
@@ -34,9 +40,9 @@ def recompute_cosine_similarity(
                     embeddings.calculate_speech_level_cosine_similarity_distribution(
                         speech=speech,
                         topic_axis=topic_axis,
-                        topic_offset=topic_offset,
                         embeddings_model=embeddings_model,
                         nlp_model=nlp_model,
+                        # topic_offset=topic_offset,
                     )
                 )
             )
