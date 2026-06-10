@@ -2,6 +2,8 @@ from python import embeddings
 from python import recompute
 from python import models
 from pathlib import Path
+import matplotlib.pyplot as plt
+
 
 EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 NLP_MODEL = "en_core_web_sm"
@@ -25,6 +27,7 @@ TOPICS = {
 
 
 def main():
+    plt.rcParams.update({"font.size": 20})
     dataframe, embeddings_model, nlp_model, gaussian_mixture_model, standard_scalar = (
         embeddings.initialize_models(
             embeddings_model_name=EMBEDDINGS_MODEL,
@@ -57,6 +60,12 @@ def main():
         topics=TOPICS,
         dataframe=dataframe,
         save_location=OUTPUT_DIRECTORY,
+    )
+
+    models.plot_gmm_distribution(
+        distribution=dataframe["Religion distribution"].iloc[473],
+        gaussian_mixture_model=gaussian_mixture_model,
+        save_location=OUTPUT_DIRECTORY / "religion_example_gmm",
     )
 
 

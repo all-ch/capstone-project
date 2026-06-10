@@ -1,5 +1,6 @@
 from sklearn.linear_model import LinearRegression
 from sklearn.mixture import GaussianMixture
+from scipy.stats import norm
 from torch import Tensor
 from pathlib import Path
 from scipy import stats
@@ -34,6 +35,59 @@ def calculate_weighted_metrics_from_gaussian_mixture_model(
     return pd.Series([weighted_mean, weighted_standard_deviation, weight])
 
 
+def plot_gmm_distribution(
+    distribution: Tensor | np.ndarray,
+    gaussian_mixture_model: GaussianMixture,
+    save_location: Path,
+    label: str = "Distribution",
+):
+    data_reshaped = distribution.reshape(-1, 1)
+    gaussian_mixture_model.fit(data_reshaped)
+
+    x_axis = np.linspace(
+        distribution.min() - 0.01, distribution.max() + 0.01, 1000
+    ).reshape(-1, 1)
+
+    log_density = gaussian_mixture_model.score_samples(x_axis)
+    total_density = np.exp(log_density)
+
+    colors = ["green", "purple", "orange"]
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    ax.hist(
+        distribution,
+        bins=30,
+        alpha=0.7,
+        density=True,
+        color="cornflowerblue",
+        edgecolor="black",
+    )
+
+    ax.plot(x_axis, total_density, color="red", lw=2, alpha=0.7, label="Total GMM")
+
+    for j in range(gaussian_mixture_model.n_components):
+        mean = gaussian_mixture_model.means_[j][0]
+        std = np.sqrt(gaussian_mixture_model.covariances_[j][0][0])
+        weight = gaussian_mixture_model.weights_[j]
+
+        pdf = weight * norm.pdf(x_axis, mean, std)
+        ax.plot(x_axis, pdf, "--", color=colors[j % len(colors)], alpha=0.7)
+
+    ax.set_title(
+        f"Example Religious Speech {label} ({gaussian_mixture_model.n_components} components)"
+    )
+    ax.set_xlabel(f"BIC: {gaussian_mixture_model.bic(data_reshaped):.5f}")
+    ax.set_ylabel("Density")
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(
+        fname=save_location,
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close(fig=fig)
+
+
 # INFO: linear regression functions
 
 
@@ -55,6 +109,7 @@ def save_linear_regression_with_violin_plot(
     dataframe: pd.DataFrame,
     save_location: Path,
 ) -> None:
+    plt.rcParams.update({"font.size": 20})
     fig, ax = plt.subplots(figsize=(12, 6))
     X = dataframe[feature].unique()
     violin_data = [
@@ -64,9 +119,12 @@ def save_linear_regression_with_violin_plot(
     ax.violinplot(
         dataset=violin_data, positions=X, widths=1, showmeans=True, showextrema=False
     )
-    ax.plot(X, y, label=f"slope: {slope:.5f}, p-value: {pvalue:.5f}")
-    ax.set_title(f"{topic}")
+    ax.plot(X, y, label="Mean Trend")
+    ax.set_title(f"{topic} Trend")
+    ax.set_xlabel("Year")
+    ax.set_ylabel(f"{topic} Topic Score")
     ax.legend()
+    plt.tight_layout()
     plt.savefig(
         fname=save_location / f"{topic} linear regression with violin",
         dpi=300,
