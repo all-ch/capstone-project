@@ -1,6 +1,7 @@
 from python import embeddings
 from python import recompute
 from python import models
+from python import pca
 from pathlib import Path
 import matplotlib.pyplot as plt
 
@@ -66,6 +67,43 @@ def main():
         distribution=dataframe["Religion distribution"].iloc[473],
         gaussian_mixture_model=gaussian_mixture_model,
         save_location=OUTPUT_DIRECTORY / "religion_example_gmm",
+    )
+
+    positive_anchor_embeddings = embeddings.calculate_anchor_embeddings(
+        location=TOPICS["Religion"]["Positive Anchors"],
+        embeddings_model=embeddings_model,
+    )
+    negative_anchor_embeddings = embeddings.calculate_anchor_embeddings(
+        location=TOPICS["Religion"]["Negative Anchors"],
+        embeddings_model=embeddings_model,
+    )
+    topic_axis = embeddings.calculate_topic_axis(
+        positive_vector=embeddings.calculate_average_vector(positive_anchor_embeddings),
+        negative_vector=embeddings.calculate_average_vector(negative_anchor_embeddings),
+    )
+    example_topic_speech_embeddings = embeddings.calculate_sentence_embeddings(
+        sentences=embeddings.split_speech_into_sentences(
+            speech=dataframe["speech"].iloc[64], nlp_model=nlp_model
+        ),
+        embeddings_model=embeddings_model,
+    )
+    random_control_speech_embeddings = embeddings.calculate_sentence_embeddings(
+        sentences=embeddings.split_speech_into_sentences(
+            speech=dataframe["speech"].iloc[0], nlp_model=nlp_model
+        ),
+        embeddings_model=embeddings_model,
+    )
+
+    pca.save_pca_plot(
+        topic="Religion",
+        scalar=standard_scalar,
+        number_of_components=2,
+        positive_anchor_embeddings=positive_anchor_embeddings,
+        negative_anchor_embeddings=negative_anchor_embeddings,
+        topic_axis=topic_axis,
+        example_topic_speech_embeddings=example_topic_speech_embeddings,
+        random_control_speech_embeddings=random_control_speech_embeddings,
+        save_location=OUTPUT_DIRECTORY / "religion_pca",
     )
 
 
