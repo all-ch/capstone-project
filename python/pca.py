@@ -81,7 +81,7 @@ def save_pca_plot(
     example_topic_speech_embeddings: Tensor | np.ndarray,
     random_control_speech_embeddings: Tensor | np.ndarray,
     save_location: Path,
-    print: bool = False,
+    print_plot: bool = False,
 ) -> None:
     pca, scores = get_scores(
         scalar=scalar,
@@ -100,7 +100,7 @@ def save_pca_plot(
         random_control_speech_embeddings=random_control_speech_embeddings,
     )
     add_to_plot(pca=pca, scores=scores, labels=labels)
-    if print:
+    if print_plot:
         plt.show()
     else:
         plt.savefig(fname=save_location, dpi=300, bbox_inches="tight")
