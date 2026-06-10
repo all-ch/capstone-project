@@ -40,7 +40,8 @@ def plot_gmm_distribution(
     gaussian_mixture_model: GaussianMixture,
     save_location: Path,
     label: str = "Distribution",
-):
+    print: bool = False,
+) -> None:
     data_reshaped = distribution.reshape(-1, 1)
     gaussian_mixture_model.fit(data_reshaped)
 
@@ -80,12 +81,16 @@ def plot_gmm_distribution(
     ax.set_ylabel("Density")
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(
-        fname=save_location,
-        dpi=300,
-        bbox_inches="tight",
-    )
-    plt.close(fig=fig)
+    if print:
+        plt.show()
+    else:
+        plt.savefig(
+            fname=save_location,
+            dpi=300,
+            bbox_inches="tight",
+        )
+        plt.close(fig=fig)
+    return None
 
 
 # INFO: linear regression functions
@@ -108,6 +113,7 @@ def save_linear_regression_with_violin_plot(
     y: np.ndarray,
     dataframe: pd.DataFrame,
     save_location: Path,
+    print: bool = False,
 ) -> None:
     plt.rcParams.update({"font.size": 20})
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -125,12 +131,15 @@ def save_linear_regression_with_violin_plot(
     ax.set_ylabel(f"{topic} Topic Score")
     ax.legend()
     plt.tight_layout()
-    plt.savefig(
-        fname=save_location / f"{topic} linear regression with violin",
-        dpi=300,
-        bbox_inches="tight",
-    )
-    plt.close(fig=fig)
+    if print:
+        plt.show()
+    else:
+        plt.savefig(
+            fname=save_location / f"{topic} linear regression with violin",
+            dpi=300,
+            bbox_inches="tight",
+        )
+        plt.close(fig=fig)
     return None
 
 

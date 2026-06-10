@@ -68,6 +68,7 @@ def add_to_plot(pca: PCA, scores: np.ndarray, labels: np.ndarray) -> None:
     plt.yticks(fontsize=20)
     plt.legend(fontsize=13, title_fontsize=15)
     plt.grid(True, linestyle="--", alpha=0.6)
+    return None
 
 
 def save_pca_plot(
@@ -80,6 +81,7 @@ def save_pca_plot(
     example_topic_speech_embeddings: Tensor | np.ndarray,
     random_control_speech_embeddings: Tensor | np.ndarray,
     save_location: Path,
+    print: bool = False,
 ) -> None:
     pca, scores = get_scores(
         scalar=scalar,
@@ -98,5 +100,9 @@ def save_pca_plot(
         random_control_speech_embeddings=random_control_speech_embeddings,
     )
     add_to_plot(pca=pca, scores=scores, labels=labels)
-    plt.savefig(fname=save_location, dpi=300, bbox_inches="tight")
-    plt.close()
+    if print:
+        plt.show()
+    else:
+        plt.savefig(fname=save_location, dpi=300, bbox_inches="tight")
+        plt.close()
+    return None
