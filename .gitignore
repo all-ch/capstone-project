@@ -1,4 +1,4 @@
-*.html
+.ipynb_checkpoints
 .Rproj.user/
 .Rhistory
 .positai
