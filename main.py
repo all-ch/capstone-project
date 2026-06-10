@@ -64,7 +64,7 @@ def main():
     )
 
     models.plot_gmm_distribution(
-        distribution=dataframe["Religion distribution"].iloc[473],
+        distribution=dataframe["Religion distribution"].iloc[438],
         gaussian_mixture_model=gaussian_mixture_model,
         save_location=OUTPUT_DIRECTORY / "religion_example_gmm",
     )
