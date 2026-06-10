@@ -19,7 +19,7 @@ cd ./capstone-project
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Windows
+**Windows**
 
 ```
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
