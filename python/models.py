@@ -147,6 +147,7 @@ def compute_all_linear_regression_plots(
     topics: dict[str, dict[str, Path]],
     dataframe: pd.DataFrame,
     save_location: Path,
+    print_plot: bool = False,
 ) -> None:
     for topic in topics.keys():
         prediction = predict_fitted_linear_regression(
@@ -158,5 +159,6 @@ def compute_all_linear_regression_plots(
             y=prediction,
             dataframe=dataframe,
             save_location=save_location,
+            print_plot=print_plot,
         )
     return None

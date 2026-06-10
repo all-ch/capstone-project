@@ -1,3 +1,3 @@
-## The Social Networks of Transnational Authoritarianism
+# Justifying the Family: A Semantic Analysis of Rhetorical Trends
 
-### Rean Du (and Team)
+## Allinn Chen, Rean Du, Tyler Tran, and David Wang
