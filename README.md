@@ -44,7 +44,8 @@ source .venv/bin/activate
 **Windows PowerShell**
 
 ```powershell
-.\venv\Scripts\Activate.ps1
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+.\.venv\Scripts\activate.ps1
 ```
 
 **Windows CMD**
@@ -55,8 +56,16 @@ venv\Scripts\activate.bat
 
 #### 2. Open JupyterLab
 
+**macOS/Linux**
+
 ```bash
 uv run jupyter lab
+```
+
+**Windows**
+
+```powershell
+uv run jupyter lab --ServerApp.websocket_ping_interval=20 --ServerApp.websocket_ping_timeout=60
 ```
 
 #### 3. Run the Script
