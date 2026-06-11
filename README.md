@@ -7,7 +7,7 @@
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/all-ch/capstone-project/tree/main
+git clone https://github.com/all-ch/capstone-project
 cd ./capstone-project
 ```
 
