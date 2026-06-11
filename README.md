@@ -21,7 +21,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 **Windows**
 
-```
+```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
@@ -35,8 +35,22 @@ uv sync
 
 #### 1. Load Virtual Environment
 
+**macOS/Linux**
+
 ```bash
 source .venv/bin/activate
+```
+
+**Windows PowerShell**
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+**Windows CMD**
+
+```cmd
+venv\Scripts\activate.bat
 ```
 
 #### 2. Open JupyterLab
@@ -47,7 +61,7 @@ uv run jupyter lab
 
 #### 3. Run the Script
 
-Go to top menu and select **Run > Run All Cells**
+Open the `main.ipynb` file from the directory on the left, then go to top menu and select **Run > Run All Cells**
 
 ### File Descriptions
 
